@@ -1,4 +1,4 @@
-tileserver
-==========
+tileserver.php
+==============
 
-OGC WMTS compliant map tile server for pre-rendered maps made with MapTiler / TileMill / MBTiles
+Easy to install OGC WMTS compliant map tile server for pre-rendered maps made with MapTiler / TileMill / MBTiles
