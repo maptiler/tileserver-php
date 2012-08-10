@@ -1,0 +1,216 @@
+#message { display:none; }
+#gallery {display:none; }
+#usage { display:none; }
+
+/* Layout to hide addressbar on iPhone */
+            html, body {
+                margin  : 0;
+                padding : 0;
+                height  : 100%;
+                width   : 100%;
+            }
+            @media only screen and (max-width: 600px) {
+                html, body {
+                    height  : 117%;
+                }
+            }
+            #map {
+                width    : 100%;
+                position : relative;
+                height   : 100%;
+            }
+            .olControlAttribution {
+                position      : absolute;
+                font-size     : 10px;
+                bottom        : 0 !important;
+                right         : 0 !important;
+                background    : rgba(0,0,0,0.1);
+                font-family   : Arial;
+                padding       : 2px 4px;
+                border-radius : 5px 0 0 0;
+            }
+
+
+/* CSS full-screen layout */
+body { overflow:hidden; padding: 0; margin: 0; width: 100%; height: 100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; color: #333; }
+#header { position: absolute; top:0; left:0; width:100%; height: 45px; z-index:1200; /* box-shadow: 0px 3px 5px rgba(50, 50, 50, 0.5); */ }
+#headershade { position: absolute; top:45px; left:0; width:100%; height: 2px; z-index:1200; background-color: rgba(50, 50, 50, 0.2); }
+#map { position: absolute; top:0; left:0; width:100%; height:100%; }
+#button { position:absolute; right:10px; top:6px; }
+#button-mobile { position:absolute; right:10px; top:6px; width:30px; }
+a { text-decoration: none; color: #4183C4; }
+a:hover { text-decoration: underline; }
+
+.fade  { padding:10%; overflow-y: auto; position:absolute; top:45px;left:0;right:0;bottom:0; text-align:center; background-color: #666; background-color: rgba(0, 0, 0, 0.6); z-index:1100; color: #ddd; font-weight:bold; text-shadow: 0px 1px 0px black; }
+.fade a { color: #90C6FF; }
+
+#gallery a {
+display: inline-block;
+width: 256px;
+height: 256px;
+margin: 0px 10px 20px 10px;
+border-radius: 3px;
+box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px, rgba(255, 255, 255, 0.1) 0px 0px 0px 5px;
+background-position: 50% 50%;
+background-repeat: no-repeat;
+background-size: 100%;
+}
+.thumb div { }
+@media screen and (max-width: 800px) {
+  #gallery a { width: 128px; height:128px; }
+}
+
+/* CSS design */
+#header { overflow:hidden; background: #fff; border-bottom: 1px solid #ccc; background-color: rgba(255, 255, 255, 0.9) }
+#header h1 { margin:10px; margin-left:20px; font-size: 16pt; font-weight:normal; text-shadow: 1px 1px 1px #DDD; display: inline; line-height: 42px; }
+h2 { color: #fff !important; font-size: 28px; }
+h3 { color: #fff !important; font-size: 18px; }
+hr { border:0; height:20px; }
+#map { border: 1px solid #ccc; background-color: #eee; background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoAgMAAADxkFD+AAAACVBMVEUAAABwr/9bpP8js72GAAAAA3RSTlMAEC31a4r6AAAAGUlEQVQYV2OceoDlD4MDiGB0oD1z1DYqMQEuQaF9jK/ghAAAAABJRU5ErkJggg==);
+ }
+   
+/* cupid green (inspired by okcupid.com)
+*******************************************************************************/
+button.cupid-green {
+  background-color: #7fbf4d;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #7fbf4d), color-stop(100%, #63a62f));
+  background-image: -webkit-linear-gradient(top, #7fbf4d, #63a62f);
+  background-image: -moz-linear-gradient(top, #7fbf4d, #63a62f);
+  background-image: -ms-linear-gradient(top, #7fbf4d, #63a62f);
+  background-image: -o-linear-gradient(top, #7fbf4d, #63a62f);
+  background-image: linear-gradient(top, #7fbf4d, #63a62f);
+  border: 1px solid #63a62f;
+  border-bottom: 1px solid #5b992b;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-box-shadow: inset 0 1px 0 0 #96ca6d;
+  -moz-box-shadow: inset 0 1px 0 0 #96ca6d;
+  box-shadow: inset 0 1px 0 0 #96ca6d;
+  color: #fff;
+  font: bold 11px "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+  line-height: 1;
+  padding: 7px 0 8px 0;
+  text-align: center;
+  text-shadow: 0 -1px 0 #4c9021;
+  width: 120px; }
+  button.cupid-green:hover {
+    background-color: #76b347;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #76b347), color-stop(100%, #5e9e2e));
+    background-image: -webkit-linear-gradient(top, #76b347, #5e9e2e);
+    background-image: -moz-linear-gradient(top, #76b347, #5e9e2e);
+    background-image: -ms-linear-gradient(top, #76b347, #5e9e2e);
+    background-image: -o-linear-gradient(top, #76b347, #5e9e2e);
+    background-image: linear-gradient(top, #76b347, #5e9e2e);
+    -webkit-box-shadow: inset 0 1px 0 0 #8dbf67;
+    -moz-box-shadow: inset 0 1px 0 0 #8dbf67;
+    box-shadow: inset 0 1px 0 0 #8dbf67;
+    cursor: pointer; }
+  button.cupid-green:active {
+    border: 1px solid #5b992b;
+    border-bottom: 1px solid #538c27;
+    -webkit-box-shadow: inset 0 0 8px 4px #548c29, 0 1px 0 0 #eeeeee;
+    -moz-box-shadow: inset 0 0 8px 4px #548c29, 0 1px 0 0 #eeeeee;
+    box-shadow: inset 0 0 8px 4px #548c29, 0 1px 0 0 #eeeeee; }
+
+/* OpenLayers
+**************/
+
+
+div.olControlZoom {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 1px;
+}
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+div.olControlZoom a {
+    display: block;
+    padding: 0; margin:0;
+    color: #000;
+    font-size: 24px;
+    font-family: sans-serif;
+    text-decoration: none;
+    text-align: center;
+    height: 28px;
+    width: 28px;
+    line-height: 26px;
+    border: 1px solid #CCC;
+    background: #fff; /* fallback for IE - IE6 requires background shorthand*/
+    background-color: rgba(255, 255, 255, 0.9);
+    filter: alpha(opacity=90);
+    /* box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px;
+    -moz-box-shadow: rgba(0,0,0,0.1) 0px 1px 3px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px;
+    */
+}
+a.olControlZoomIn {
+    border-radius: 4px 4px 0 0;
+}
+a.olControlZoomOut {
+    border-radius: 0 0 4px 4px;
+    border-top: 0px !important;
+}
+div.olControlZoom a:hover {
+    background: #eee; /* fallback for IE */
+    filter: alpha(opacity=100);
+}
+
+
+/* Position adjustments */
+
+div.olControlAttribution, div.olControlScaleLine {
+  font-size: 7pt;
+  bottom: 3px;
+}
+div.olControlZoom {
+    position: absolute;
+    top: 58px ;
+    left: 10px;
+}
+.olImageLoadError { visibility: hidden; }
+.olHandlerBoxZoomBox {
+    border: 2px solid red;
+    position: absolute;
+    background-color: white;
+    opacity: 0.50;
+    font-size: 1px;
+    filter: alpha(opacity=50);
+}
+.olControlOverviewMapRectReplacement { border: 1px solid #f00; }
+
+
+.olLayerGrid .olTileImage {
+    -webkit-transition: opacity 0.2s linear;
+    -moz-transition: opacity 0.2s linear;
+    -o-transition: opacity 0.2s linear;
+    transition: opacity 0.2s linear;
+}
+/* Enable 3d acceleration when operating on tiles, this is
+   known to yield better performance on IOS Safari.
+   http://osgeo-org.1803224.n2.nabble.com/Harware-accelerated-CSS3-animations-for-iOS-td6255560.html
+
+   It also prevents tile blinking effects in iOS 5.
+   See https://github.com/openlayers/openlayers/issues/511
+*/
+@media (-webkit-transform-3d) {
+img.olTileImage {
+    -webkit-transform: translate3d(0, 0, 0);
+}
+}
+
+/**
+ * Animations
+ */
+
+.olLayerGrid .olTileImage {
+    -webkit-transition: opacity 0.2s linear;
+    -moz-transition: opacity 0.2s linear;
+    -o-transition: opacity 0.2s linear;
+    transition: opacity 0.2s linear;
+}
