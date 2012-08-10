@@ -1,4 +1,237 @@
-tileserver.php
-==============
+=================================================
+TileServer.php - OGC Web Map Tiling Server (WMTS)
+=================================================
 
-Easy to install OGC WMTS compliant map tile server for pre-rendered maps made with MapTiler / TileMill / MBTiles
+This server distributes maps to desktop, web, and mobile applications from
+a standard Apache+PHP web hosting.
+
+It is a free and open-source project implementing OGC WMTS server for
+pre-rendered map tiles made with MapTiler Cluster, MapTiler, GDAL2Tiles,
+or available as MBTiles files.
+
+It is the easiest and cheapest way how to serve zoomable maps in a
+standardized way - practically from any ordinary web hosting.
+
+It is easy to install - just copy the project files to a PHP-enabled
+directory along with your map data containing metadata.json file.
+
+This project is developed in PHP, not because it is the best language for
+development of web applications, but because it maximally simplify the
+deployment on large number of web hosting providers including various free
+web hostings.
+
+Tiles are served directly by Apache with mod_rewrite rules as static files
+and therefore are very fast and with correct HTTP caching headers.
+Only XML metadata are delivered via PHP.
+MBTiles are served via PHP, unless they are unpacked with mbutil.
+
+Requirements:
+-------------
+
+- Apache webserver (with mod_rewrite / .htaccess supported)
+- PHP 5.2+
+
+(or anther webserver implementing mod_rewrite rules and PHP)
+
+Installation:
+-------------
+
+Download the project files as a zip archive or source code from GitHub and
+unpack it into a web-hosting of your choice.
+
+If you access the web address relevant to the installation directory, 
+the TileServer.php Server should display you a welcome message and further
+instructions.
+
+Then you can upload to the web hosting your mapping data - a directory with
+tiles rendered with MapTiler Cluster.
+
+Tiles produced by open-source GDAL2Tiles or MapTiler and tiles in .mbtiles
+files can be easily converted to required structure (XYZ with top-left origin
+and metadata.json file).
+
+The OpenSource utility mbutil (https://github.com/mapbox/mbutil) produces
+exactly the required format.
+
+Direct reading of .mbtiles files is supported, but with decreased performance
+compared to the static files in a directory. Therefore the data management,
+especially upload over FTP or similar protocols, is easier.
+
+Supported protocols:
+--------------------
+
+- OpenGIS WMTS 1.0.0
+  
+  The Open Geospatial Consortium (OGC) Web Map Tile Service (WMTS)
+  Both KVP and RESTful version 1.0.0:
+  http://www.opengeospatial.org/standards/wmts/
+  
+  Target is maximal compliance to the standard.
+  
+  Exposed at http://[...]/wmts
+  
+- OSGeo TMS 1.0.0
+
+  The OSGeo Tile Maps Service, but with inverted y-coordinates:
+  http://wiki.osgeo.org/wiki/Tile_Map_Service_Specification
+  This means request compatible with OpenStreetMap tile servers.
+
+  Target is "InvertedTMS" implementation used by the ArcBruTile client
+  which is available from http://arcbrutile.codeplex.com/ and uses
+  flipped y-axis.
+
+  Exposed at http://[...]/tms
+  
+- TileJSON.js
+
+  Metadata about the individual maps in a ready to use form for web
+  clients following the standard http://mapbox.com/developers/tilejson/
+  and with support for JSONP access.
+
+  Exposed at http://[...]/layer.jsonp
+  
+- Direct access with XYZ tile requests (to existing tiles in a directory
+  or to .mbtiles)
+
+  Compatible with Google Maps API / Bing SDK / OpenStreetMap clients.
+  
+  Exposed at http://[...]/layer/z/x/y.ext
+  
+
+To use the OGC WMTS services point your client (desktop or web) to the URL
+of 'directory' where you installed tileserver.php project with suffix "wmts".
+
+For example: http://www.example.com/directory/wmts
+ 
+You can also install the project into a root directory of a virtual server:
+Then the address is: http://www.example.com/wmts
+
+Similarly for another end points.
+
+The supported WMTS requests includes:
+
+GetCapabilities RESTful/KVP:
+ 
+   http://[...]/1.0.0/WMTSCapabilities.xml
+   http://[...]?service=wmts&request=getcapabilities&version=1.0.0
+ 
+GetTile RESTful/KVP:
+ 
+   http://[...]/layer/[ANYTHING-OPTIONAL][z]/[x]/[y].[ext]
+   http://[...]?service=wmts&request=getTile&layer=[layer]&tilematrix=[z]&tilerow=[y]&tilecol=[y]&format=[ext]
+   
+Another example requests are mentioned in the .htaccess.
+
+Performance
+-----------
+
+In case the data are available in a form of directory with XYZ tiles, then
+Apache webserver is serving these files directly as WMTS RESTful or KVP.
+
+This means performance is excellent, maps are delivered very fast and large
+number of concurrent visitors can be handled even with quite a low-end
+hardware or cheap/free web hosting providers.
+
+Mod_rewrite rules are utilized to ensure the HTTP requests defined in the OCG
+WMTS standard are served, and Apache preserve standard caching headers & eTag.
+
+The performance should be significantly better then performance of any other
+tile caching project (such as TileCache.org or GeoWebCache).
+
+Performance graph for "apache static" comparing other tile caching projects
+is available online at:
+http://code.google.com/p/mod-geocache/wiki/PreliminaryBenchmark
+
+Limits of actual implementation
+-------------------------------
+
+With intention, in this moment the project supports only:
+- Mercator tiles (a la OpenStreetMap) and Geodetic tiles (WGS84 unprojected)
+  with known and described tiling scheme.
+- All tiles must be 256x256 pixels.
+- We enforce and require XYZ (top-left origin) tiling schema (even for TMS).
+
+Password protection
+-------------------
+
+HTTP Simple Authentication can be easily added to the server.
+Edit the .htaccess and add these lines:
+
+AuthUserFile /full/path/to/.htpasswd
+AuthType Basic
+AuthName "Secure WMTS"
+Require valid-user
+
+Create a file called .htpasswd with user:password format.
+You can use a command-line utility:
+
+$ htpasswd -c .htpasswd [your-user-login]
+
+Or an online service:
+
+http://www.htaccesstools.com/htpasswd-generator/
+
+HTTPS / SSL support
+-------------------
+
+TileServer.php can run without any problems over HTTPS, if required.
+
+Microsoft Windows web-hosting
+-----------------------------
+
+The TileServer.php should run on Windows-powered webservers with Apache
+installation if PHP 5.2+ and mod_rewrite are available.
+
+With the IIS webserver hosting, you may need PHP and IIRF module
+(http://iirf.codeplex.com/) and alter appropriately the rewrite rules.
+
+Credits / Contributors
+----------------------
+
+Project developed initially by Klokan Technologies GmbH, Switzerland in
+cooperation with National Oceanic and Atmospheric Administration - NOAA, USA.
+
+Petr Pridal - Klokan Technologies GmbH <petr.pridal@klokantech.com>
+Jason Woolard - NOAA <jason.woolard@noaa.gov>
+Jon Sellars - NOAA <jon.sellars@noaa.gov>
+
+Tested WMTS/TMS clients
+-----------------------
+
+- QuantumGIS Desktop 1.9+ - open with Layer->Add WMS layer
+  http://www.qgis.org/
+- ESRI ArcGIS Desktop 10.1+ - native WMTS implementation supported
+  http://www.esri.com/software/arcgis/arcgis-for-desktop
+- ArcBruTiles plugin for ArcGIS 9.3+ - via TMS endpoint
+  http://arcbrutile.codeplex.com/
+- OpenLayers WMTS Layer - including parsing GetCapabilities
+  http://www.openlayers.org/
+- GAIA - native WMTS (issues with 3857 to be fixed)
+  http://www.thecarbonproject.com/gaia.php
+- MapBox.js - the loading of maps via TileJSON
+
+BSD License
+-----------
+
+Copyright (C) 2012 Klokan Technologies GmbH
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer. 
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
