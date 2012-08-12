@@ -36,6 +36,7 @@ if ($layer === ""):
     echo "    <TileMap title=\"$title\" srs=\"$srs\" type=\"InvertedTMS\" profile=\"global-$profile\" href=\"$baseUrl$basename/tms\" />\n";
   }
   ?>
+  </TileMaps>
 </TileMapService>
 <?php
 die;
