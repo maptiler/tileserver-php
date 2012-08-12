@@ -30,8 +30,7 @@ RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [L]
 
 # MBTiles support at /layer/z/x/y.ext - loads the tile from mbtiles with php
 # TODO: serve also 404 errors for tiles
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^([^\/]+)\/(\d+)\/(\d+)\/(\d+)\.(\w+)$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=$5 [L]
+RewriteRule ^([^\/]+\.mbtiles)\/.*?(\d+)\/(\d+)\/(\d+)\.(\w+)$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=$5 [L]
 # TODO: use mod_sqlite if available to map the tiles to URL directly by apache
 
 # WMTS KVP

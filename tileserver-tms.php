@@ -26,7 +26,7 @@ if ($layer === ""):
   <TileMaps>
 <?php
   foreach ($maps as $m) {
-    $basename = str_replace('.mbtiles', '', $m['basename']);
+    $basename = $m['basename'];
     $title = (array_key_exists('name', $m )) ? $m['name'] : $basename;
     $profile = $m['profile'];
     if ($profile == 'geodetic')
@@ -45,7 +45,7 @@ die;
 # ---------
 else:
     $m = layer($layer);
-    $basename = str_replace('.mbtiles', '', $m['basename']);
+    $basename = $m['basename'];
     $title = (array_key_exists('name', $m )) ? $m['name'] : $basename;
     $description = (array_key_exists('description', $m )) ? $m['description'] : "";
     $bounds = $m['bounds'];

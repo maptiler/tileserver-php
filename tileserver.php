@@ -83,7 +83,7 @@ You can easily convert existing geodata (GeoTIFF, ECW, MrSID, etc) to this tile 
   echo "<h3>Available maps</h3>";
   echo "<ul>";
   foreach ($maps as $map) {
-    // echo "<li><a href=\"".str_replace('.mbtiles', '', $map['basename'])."\">".$map['name']."</a>" ;
+    // echo "<li><a href=\"".$map['basename']."\">".$map['name']."</a>" ;
     echo "<li>".$map['name'];
   }
   echo "</ul>";
@@ -195,7 +195,7 @@ function metadataTileJson( $metadata ) {
   $metadata['sheme'] = 'xyz';
   $tiles = array();
   foreach($config['baseUrls'] as $url)
-    $tiles[] = $url.str_replace('.mbtiles', '', $metadata['basename']).'/{z}/{x}/{y}.'.$metadata['format'];
+    $tiles[] = $url.$metadata['basename'].'/{z}/{x}/{y}.'.$metadata['format'];
   #print_r($tiles);
   $metadata['tiles'] = $tiles;
   return $metadata;

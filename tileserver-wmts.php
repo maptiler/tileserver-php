@@ -70,7 +70,7 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"; ?>
 <?php
 
 foreach ($maps as $m) {
-    $basename = str_replace('.mbtiles', '', $m['basename']);
+    $basename = $m['basename'];
     $title = (array_key_exists('name', $m )) ? $m['name'] : $basename;
     $profile = $m['profile'];
     $bounds = $m['bounds'];
