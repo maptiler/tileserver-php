@@ -89,12 +89,13 @@ foreach ($maps as $m) {
     <Layer>
       <ows:Title><?php echo $title ?></ows:Title>
       <ows:Identifier><?php echo $basename ?></ows:Identifier>
-      <?php if ($profile == 'mercator') { ?>
+      <?php /* GAIA client does not like it
+      if ($profile == 'mercator') { ?>
       <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::102100">
         <ows:LowerCorner><?php echo $bounds3857[1], ' ', $bounds3857[0] ?></ows:LowerCorner>
         <ows:UpperCorner><?php echo $bounds3857[3], ' ', $bounds3857[2] ?></ows:UpperCorner>
       </ows:BoundingBox>
-      <?php } ?>
+      <?php } */ ?>
       <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
         <ows:LowerCorner><?php echo $bounds[0], ' ', $bounds[1] ?></ows:LowerCorner>
         <ows:UpperCorner><?php echo $bounds[2], ' ', $bounds[3] ?></ows:UpperCorner>

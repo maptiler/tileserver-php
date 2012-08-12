@@ -20,13 +20,17 @@ RewriteEngine On
 # Example: http://www.tileserver.com/grandcanyon/10/192/401.png
 
 # map /wmts/layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrixset,style,..)
-RewriteRule ^wmts/([\w\d\._-]+)/.*?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [L]
+# BTW This is used only by Gaia which ignores the <ResourceURL template="...">
+RewriteRule ^wmts/([\w\d\._-]+)/.*?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$4/$3.$5 [L]
 # Example: http://www.tileserver.com/wmts/grandcanyon/style/tilematrixset/10/192/401.png
 
 # map /layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrix,style,..)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [L]
 # Example: http://www.tileserver.com/grandcanyon/style/tilematrixset/10/192/401.png
+
+# rewrite .jpeg -> .jpg
+RewriteRule ^(.+).jpeg$ $1.jpg [L]
 
 # MBTiles support at /layer/z/x/y.ext - loads the tile from mbtiles with php
 # TODO: serve also 404 errors for tiles
