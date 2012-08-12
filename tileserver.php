@@ -8,7 +8,7 @@
 
 # Set you own config values here:
 $config = array(
-  "baseUrls" => array("http://10.0.1.11/"),
+  "baseUrls" => array("http://localhost/"),
   "serverTitle" => "TileServer.php v0.1",
 );
 
