@@ -122,6 +122,16 @@ GetTile RESTful/KVP:
    
 Another example requests are mentioned in the .htaccess.
 
+Performance from the web clients
+--------------------------------
+
+It is highly recommended to map several domain names to the service, such as:
+http://a.example.com/, http://b.example.com/, http://c.example.com/.
+This can be done with DNS CNAME records pointing to your hosting.
+The reason for this is that traditionally browsers will not send more then two
+simultaneous http request to the same domain - with multiple domains for the
+same server you can better saturate the network and receive the maps faster.
+
 Performance
 -----------
 
