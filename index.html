@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="TileServer.php : An OGC WMTS compliant map tile server for maps pre-rendered with MapTiler Cluster / GDAL2Tiles / MapTiler / TileMill / MBTiles / etc. It serves maps to desktop, web and mobile applications from an ordinary Apache+PHP webhosting." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>TileServer.php</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/klokantech/tileserver-php">View on GitHub</a>
+
+          <h1 id="project_title">TileServer.php</h1>
+          <h2 id="project_tagline">An OGC WMTS compliant map tile server for maps pre-rendered with MapTiler Cluster / GDAL2Tiles / MapTiler / TileMill / MBTiles / etc. It serves maps to desktop, web and mobile applications from an ordinary Apache+PHP webhosting.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/klokantech/tileserver-php/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/klokantech/tileserver-php/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1></h1>
+
+<h1>OGC Web Map Tiling Server (WMTS)</h1>
+
+<p>This server distributes maps to desktop, web, and mobile applications from
+a standard Apache+PHP web hosting.</p>
+
+<p>It is a free and open-source project implementing OGC WMTS standard for
+pre-rendered map tiles made with MapTiler Cluster, MapTiler, GDAL2Tiles,
+or available as MBTiles files.</p>
+
+<p>It is the easiest and cheapest way how to serve zoomable maps in a
+standardized way - practically from any ordinary web hosting.</p>
+
+<p>It is easy to install - just copy the project files to a PHP-enabled
+directory along with your map data containing metadata.json file.</p>
+
+<p>This project is developed in PHP, not because it is the best language for
+development of web applications, but because it maximally simplify the
+deployment on large number of web hosting providers including various free
+web hostings.</p>
+
+<p>Tiles are served directly by Apache with mod_rewrite rules as static files
+and therefore are very fast and with correct HTTP caching headers.
+Only XML metadata are delivered via PHP.
+MBTiles are served via PHP, unless they are unpacked with mbutil.</p>
+
+<h2>Requirements:</h2>
+
+<ul>
+<li>Apache webserver (with mod_rewrite / .htaccess supported)</li>
+<li>PHP 5.2+</li>
+</ul><p>(or anther webserver implementing mod_rewrite rules and PHP)</p>
+
+<h2>Installation:</h2>
+
+<p>Download the project files as a zip archive or source code from GitHub and
+unpack it into a web-hosting of your choice.</p>
+
+<p>If you access the web address relevant to the installation directory, 
+the TileServer.php Server should display you a welcome message and further
+instructions.</p>
+
+<p>Then you can upload to the web hosting your mapping data - a directory with
+tiles rendered with MapTiler Cluster.</p>
+
+<p>Tiles produced by open-source GDAL2Tiles or MapTiler and tiles in .mbtiles
+files can be easily converted to required structure (XYZ with top-left origin
+and metadata.json file).</p>
+
+<p>The OpenSource utility mbutil (<a href="https://github.com/mapbox/mbutil">https://github.com/mapbox/mbutil</a>) produces
+exactly the required format.</p>
+
+<p>Direct reading of .mbtiles files is supported, but with decreased performance
+compared to the static files in a directory. Therefore the data management,
+especially upload over FTP or similar protocols, is easier.</p>
+
+<h2>Supported protocols:</h2>
+
+<ul>
+<li>
+<p>OpenGIS WMTS 1.0.0</p>
+
+<p>The Open Geospatial Consortium (OGC) Web Map Tile Service (WMTS)
+Both KVP and RESTful version 1.0.0:
+<a href="http://www.opengeospatial.org/standards/wmts/">http://www.opengeospatial.org/standards/wmts/</a></p>
+
+<p>Target is maximal compliance to the standard.</p>
+
+<p>Exposed at http://[...]/wmts</p>
+</li>
+<li>
+<p>OSGeo TMS 1.0.0</p>
+
+<p>The OSGeo Tile Maps Service, but with inverted y-coordinates:
+<a href="http://wiki.osgeo.org/wiki/Tile_Map_Service_Specification">http://wiki.osgeo.org/wiki/Tile_Map_Service_Specification</a>
+This means request compatible with OpenStreetMap tile servers.</p>
+
+<p>Target is "InvertedTMS" implementation used by the ArcBruTile client
+which is available from <a href="http://arcbrutile.codeplex.com/">http://arcbrutile.codeplex.com/</a> and uses
+flipped y-axis.</p>
+
+<p>Exposed at http://[...]/tms</p>
+</li>
+<li>
+<p>TileJSON.js</p>
+
+<p>Metadata about the individual maps in a ready to use form for web
+clients following the standard <a href="http://mapbox.com/developers/tilejson/">http://mapbox.com/developers/tilejson/</a>
+and with support for JSONP access.</p>
+
+<p>Exposed at http://[...]/layer.jsonp</p>
+</li>
+<li>
+<p>Direct access with XYZ tile requests (to existing tiles in a directory
+or to .mbtiles)</p>
+
+<p>Compatible with Google Maps API / Bing SDK / OpenStreetMap clients.</p>
+
+<p>Exposed at http://[...]/layer/z/x/y.ext</p>
+</li>
+</ul><p>To use the OGC WMTS services point your client (desktop or web) to the URL
+of 'directory' where you installed tileserver.php project with suffix "wmts".</p>
+
+<p>For example: <a href="http://www.example.com/directory/wmts">http://www.example.com/directory/wmts</a></p>
+
+<p>You can also install the project into a root directory of a virtual server:
+Then the address is: <a href="http://www.example.com/wmts">http://www.example.com/wmts</a></p>
+
+<p>Similarly for another end points.</p>
+
+<p>The supported WMTS requests includes:</p>
+
+<p>GetCapabilities RESTful/KVP:</p>
+
+<p>http://[...]/1.0.0/WMTSCapabilities.xml
+   http://[...]?service=wmts&amp;request=getcapabilities&amp;version=1.0.0</p>
+
+<p>GetTile RESTful/KVP:</p>
+
+<p>http://[...]/layer/[ANYTHING-OPTIONAL][z]/[x]/[y].[ext]
+   http://[...]?service=wmts&amp;request=getTile&amp;layer=[layer]&amp;tilematrix=[z]&amp;tilerow=[y]&amp;tilecol=[y]&amp;format=[ext]</p>
+
+<p>Another example requests are mentioned in the .htaccess.</p>
+
+<h2>Performance from the web clients</h2>
+
+<p>It is highly recommended to map several domain names to the service, such as:
+<a href="http://a.example.com/">http://a.example.com/</a>, <a href="http://b.example.com/">http://b.example.com/</a>, <a href="http://c.example.com/">http://c.example.com/</a>.
+This can be done with DNS CNAME records pointing to your hosting.
+The reason for this is that traditionally browsers will not send more then two
+simultaneous http request to the same domain - with multiple domains for the
+same server you can better saturate the network and receive the maps faster.</p>
+
+<h2>Performance</h2>
+
+<p>In case the data are available in a form of directory with XYZ tiles, then
+Apache webserver is serving these files directly as WMTS RESTful or KVP.</p>
+
+<p>This means performance is excellent, maps are delivered very fast and large
+number of concurrent visitors can be handled even with quite a low-end
+hardware or cheap/free web hosting providers.</p>
+
+<p>Mod_rewrite rules are utilized to ensure the HTTP requests defined in the OCG
+WMTS standard are served, and Apache preserve standard caching headers &amp; eTag.</p>
+
+<p>The performance should be significantly better then performance of any other
+tile caching project (such as TileCache.org or GeoWebCache).</p>
+
+<p>Performance graph for "apache static" comparing other tile caching projects
+is available online at:
+<a href="http://code.google.com/p/mod-geocache/wiki/PreliminaryBenchmark">http://code.google.com/p/mod-geocache/wiki/PreliminaryBenchmark</a></p>
+
+<h2>Limits of actual implementation</h2>
+
+<p>With intention, in this moment the project supports only:</p>
+
+<ul>
+<li>Mercator tiles (a la OpenStreetMap) and Geodetic tiles (WGS84 unprojected)
+with known and described tiling scheme.</li>
+<li>All tiles must be 256x256 pixels.</li>
+<li>We enforce and require XYZ (top-left origin) tiling schema (even for TMS).</li>
+</ul><h2>Password protection</h2>
+
+<p>HTTP Simple Authentication can be easily added to the server.
+Edit the .htaccess and add these lines:</p>
+
+<p>AuthUserFile /full/path/to/.htpasswd
+AuthType Basic
+AuthName "Secure WMTS"
+Require valid-user</p>
+
+<p>Create a file called .htpasswd with user:password format.
+You can use a command-line utility:</p>
+
+<p>$ htpasswd -c .htpasswd [your-user-login]</p>
+
+<p>Or an online service:</p>
+
+<p><a href="http://www.htaccesstools.com/htpasswd-generator/">http://www.htaccesstools.com/htpasswd-generator/</a></p>
+
+<h2>HTTPS / SSL support</h2>
+
+<p>TileServer.php can run without any problems over HTTPS, if required.</p>
+
+<h2>Microsoft Windows web-hosting</h2>
+
+<p>The TileServer.php should run on Windows-powered webservers with Apache
+installation if PHP 5.2+ and mod_rewrite are available.</p>
+
+<p>With the IIS webserver hosting, you may need PHP and IIRF module
+(<a href="http://iirf.codeplex.com/">http://iirf.codeplex.com/</a>) and alter appropriately the rewrite rules.</p>
+
+<h2>Credits / Contributors</h2>
+
+<p>Project developed initially by Klokan Technologies GmbH, Switzerland in
+cooperation with National Oceanic and Atmospheric Administration - NOAA, USA.</p>
+
+<p>Petr Pridal - Klokan Technologies GmbH <a href="mailto:petr.pridal@klokantech.com">petr.pridal@klokantech.com</a>
+Jason Woolard - NOAA <a href="mailto:jason.woolard@noaa.gov">jason.woolard@noaa.gov</a>
+Jon Sellars - NOAA <a href="mailto:jon.sellars@noaa.gov">jon.sellars@noaa.gov</a></p>
+
+<h2>Tested WMTS/TMS clients</h2>
+
+<ul>
+<li>QuantumGIS Desktop 1.9+ - open with Layer-&gt;Add WMS layer
+<a href="http://www.qgis.org/">http://www.qgis.org/</a>
+</li>
+<li>ESRI ArcGIS Desktop 10.1+ - native WMTS implementation supported
+<a href="http://www.esri.com/software/arcgis/arcgis-for-desktop">http://www.esri.com/software/arcgis/arcgis-for-desktop</a>
+</li>
+<li>ArcBruTiles plugin for ArcGIS 9.3+ - via TMS endpoint
+<a href="http://arcbrutile.codeplex.com/">http://arcbrutile.codeplex.com/</a>
+</li>
+<li>OpenLayers WMTS Layer - including parsing GetCapabilities
+<a href="http://www.openlayers.org/">http://www.openlayers.org/</a>
+</li>
+<li>GAIA - native WMTS (issues with 3857 to be fixed)
+<a href="http://www.thecarbonproject.com/gaia.php">http://www.thecarbonproject.com/gaia.php</a>
+</li>
+<li>MapBox.js - the loading of maps via TileJSON</li>
+</ul><h2>BSD License</h2>
+
+<p>Copyright (C) 2012 Klokan Technologies GmbH
+All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+<li>Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. </li>
+<li>Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution. </li>
+</ol><p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">TileServer.php maintained by <a href="https://github.com/klokantech">klokantech</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-8073932-8");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
