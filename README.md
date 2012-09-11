@@ -5,7 +5,7 @@ TileServer.php - OGC Web Map Tiling Server (WMTS)
 This server distributes maps to desktop, web, and mobile applications from
 a standard Apache+PHP web hosting.
 
-It is a free and open-source project implementing OGC WMTS server for
+It is a free and open-source project implementing OGC WMTS standard for
 pre-rendered map tiles made with MapTiler Cluster, MapTiler, GDAL2Tiles,
 or available as MBTiles files.
 
