@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>TileServer: asdfasdfasdfasdf</title>
+  <!-- POWERED BY TILESERVER.PHP -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=8">
+  <!--[if lte IE 6]>
+  <meta http-equiv="refresh" content="0; url=http://www.ie6countdown.com/" />
+  <script type="text/javascript">window.top.location = 'http://www.ie6countdown.com/';</script>
+  <![endif]-->
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen">
+  <script src="js/OpenLayers.mobile.wmts.js"></script>
+  <script>
+// Get rid of address bar on iphone/ipod
+var fixSize = function() {
+    window.scrollTo(0,0);
+    document.body.style.height = '100%';
+    if (!(/(iphone|ipod)/.test(navigator.userAgent.toLowerCase()))) {
+        if (document.body.parentNode) {
+            document.body.parentNode.style.height = '100%';
+        }
+    }
+};
+setTimeout(fixSize, 700);
+setTimeout(fixSize, 1500);
+
+var activeView = "";
+function toggle(view) {
+	if (activeView !== "")
+		document.getElementById(activeView).style.display = "none";
+	if (activeView !== view) {
+		document.getElementById(view).style.display = "block";
+		activeView = view;
+	} else {
+		activeView = "";
+	}
+}
+  </script>
+</head>
+
+<body>
+<div id="content">
+<div id="header">
+  <h1>TileServer OpenSource Project v0.1: [map name]</h1>
+  <a href="" onClick="toggle('usage'); return false;">Usage details (APIs, WMTS, ArcGIS, etc)</a> |
+  <a href="" onClick="toggle('message'); return false;">Message</a>
+  <button id="button" class="cupid-green" onClick="toggle('gallery'); return false;">Other maps</button>
+</div>
+<div id="map"></div>
+<div id="headershade"></div>
+<div id="push"></div>
+</div>
+
+<div id="gallery" class="fade">
+    <h2>Choose a map</h2>
+    You can open one of the maps exposed with this TileServer service:
+    <hr/>
+    <a class="thumb" href="#mapbox.mapbox-streets" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/thumb.png);" title="Title"></a>
+    <a class="thumb" href="#kkaefer.iceland" style="background-image:url(http://a.tiles.mapbox.com/v3/kkaefer.iceland/thumb.png);"></a>
+
+    <a class="thumb" href="#dhcole.popup" style="background-image:url(http://a.tiles.mapbox.com/v3/dhcole.popup/thumb.png);"></a>
+    <a class="thumb" href="#mapbox.blue-marble-topo-bathy-jul" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.blue-marble-topo-bathy-jul/thumb.png);"></a>
+    <a class="thumb" href="#dhcole.map-6ssdy5ac" style="background-image:url(http://a.tiles.mapbox.com/v3/dhcole.map-6ssdy5ac/thumb.png);"></a>
+    <a class="thumb" href="#devseed.map-df5yudln" style="background-image:url(http://a.tiles.mapbox.com/v3/devseed.map-df5yudln/thumb.png);"></a>
+    <a class="thumb" href="#bclc-apec.map-rslgvy56" style="background-image:url(http://a.tiles.mapbox.com/v3/bclc-apec.map-rslgvy56/thumb.png);"></a>
+    <a class="thumb" href="#tmcw.shadowplay" style="background-image:url(http://a.tiles.mapbox.com/v3/tmcw.shadowplay/thumb.png);"></a>
+    <a class="thumb" href="#mapbox.natural-earth-2" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.natural-earth-2/thumb.png);"></a>
+    <a class="thumb" href="#tristen.city_of_toronto" style="background-image:url(http://a.tiles.mapbox.com/v3/tristen.city_of_toronto/thumb.png);"></a>
+    <a class="thumb" href="#villeda.simard-forests" style="background-image:url(http://a.tiles.mapbox.com/v3/villeda.simard-forests/thumb.png);"></a>
+    <a class="thumb" href="#villeda.dc-footprints" style="background-image:url(http://a.tiles.mapbox.com/v3/villeda.dc-footprints/thumb.png);"></a>
+    <a class="thumb" href="#dhcole.dots-and-lines" style="background-image:url(http://a.tiles.mapbox.com/v3/dhcole.dots-and-lines/thumb.png);"></a>
+    <a class="thumb" href="#cbley.nyc" style="background-image:url(http://a.tiles.mapbox.com/v3/cbley.nyc/thumb.png);"></a>
+    <a class="thumb" href="#mapbox.baltimore-retro" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.baltimore-retro/thumb.png);"></a>
+    <a class="thumb" href="#tmcw.rrrr2" style="background-image:url(http://a.tiles.mapbox.com/v3/tmcw.rrrr2/thumb.png);"></a>
+    <a class="thumb" href="#colemanm.persia-1891" style="background-image:url(http://a.tiles.mapbox.com/v3/colemanm.persia-1891/thumb.png);"></a>
+    <a class="thumb" href="#occupy.occupy-streets" style="background-image:url(http://a.tiles.mapbox.com/v3/occupy.occupy-streets/thumb.png);"></a>
+    <a class="thumb" href="#colemanm.blue-marble-8bit" style="background-image:url(http://a.tiles.mapbox.com/v3/colemanm.blue-marble-8bit/thumb.png);"></a>
+    <a class="thumb" href="#newamerica.motw_poverty" style="background-image:url(http://a.tiles.mapbox.com/v3/newamerica.motw_poverty/thumb.png);"></a>
+    <a class="thumb" href="#mapbox.haiti-terrain" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.haiti-terrain/thumb.png);"></a>
+    <a class="thumb" href="#mapbox.afghanistan-winter" style="background-image:url(http://a.tiles.mapbox.com/v3/mapbox.afghanistan-winter/thumb.png);"></a>
+    <a class="thumb" href="#aj.population-fire" style="background-image:url(http://a.tiles.mapbox.com/v3/aj.population-fire/thumb.png);"></a>
+</div>
+
+<div id="message" class="fade">
+  <h2>TileServer.php successfully installed</h2>
+  Now you should upload some maps into /sdfasfjas/fadfa/afsdf/asfasdf/asdfasdf/afasdf on your server.
+  <p>Supported formats are: a directory with TMS or XYZ tileset or a file with extention .mbtiles.
+  <p>You can easily prepare you maps with <a href="http://www.maptiler.org/">MapTiler</a> or <a href="http://mapbox.com/tilemill/">TileMill</a>.
+</div>
+
+<div id="usage" class="fade">
+  <h2>Use this map in your website or desktop GIS software</h2>
+  This website is directly optimized for mobile phones and tablets.<br/>
+  The map can be easily used in other websites, mobile devices or traditional desktop applications.
+  <h3>How to load this map in a desktop software:</h3>
+  <a href="#">Google Earth</a> | <a href="#">QuantumGIS (qgis)</a> | <a href="#">UDig</a> | <a href="#">ESRI ArcGIS Desktop 9.3+</a> | <a href="#">ESRI ArcGIS Desktop 10.1+</a>
+  <h3>Use this map with web mapping API:</h3>
+  <a href="#">Google Maps V3</a> | <a href="#">OpenLayers</a> | <a href="#">Leaflet</a>
+  <h3>Or standardized protocols:</h3>
+  <a href="#">WMTS</a> | <a href="#">TMS</a> | <a href="#">QuadKey</a> | <a href="#">KML</a>
+  <p>
+</div>
+
+<a href="http://www.github.com/klokantech/tileserver.php/">TileServer.php</a> project by
+<a href="http://www.klokantech.com/">Klokan Technologies</a>
+<script type="text/javascript">
+var urls = [
+    "http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+    "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+    "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+    "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"
+];
+var map = new OpenLayers.Map({
+    div: "map",
+    theme: null,
+    layers: [
+        new OpenLayers.Layer.XYZ("OSM (with buffer)", urls, {
+            transitionEffect: "resize", buffer: 1, sphericalMercator: true,
+            attribution: "Data CC-By-SA by <a href='http://openstreetmap.org/'>OpenStreetMap</a>"
+        }) 
+    ],
+    controls: [
+        new OpenLayers.Control.TouchNavigation({
+            dragPanOptions: {
+                enableKinetic: true
+            }
+        }),
+        new OpenLayers.Control.Zoom(),
+        new OpenLayers.Control.Attribution()
+    ],
+    center: [0, 3000000],
+    zoom: 3
+});
+//map.zoomToMaxExtent();
+</script>
+</body>
+</html>
