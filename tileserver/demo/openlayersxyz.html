@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Chicago Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<!--meta http-equiv="content-type" content="text/html; charset=utf-8"/-->
+
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<style type="text/css">
+		.olControlAttribution {
+			 position      : absolute;
+             font-size     : 10px;
+             bottom        : 0 !important;
+             right         : 0 !important;
+             background    : rgba(0,0,0,0.1);
+             font-family   : Arial;
+             padding       : 2px 4px;
+             border-radius : 5px 0 0 0;		
+        }
+		.olImageLoadError { 
+		    display: none !important;
+		}
+</style>
+<script type="text/javascript">
+	var zoom = 13;																											
+    function init(){
+
+        var arrayOSM = ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"];
+       
+        var baseOSM = new OpenLayers.Layer.OSM("OSM Tiles", arrayOSM);
+      										
+		var chicago = new OpenLayers.Layer.XYZ( "Chicago Aerial","../chicago/${z}/${x}/${y}.png",                      
+		     {isBaseLayer: false, visibility: true, transitionEffect: "resize",  numZoomLevels:16 } );
+			
+		var map = new OpenLayers.Map({
+		    div: "map",
+		    layers: [baseOSM,chicago],
+			projection: "EPSG:900913",
+		    controls: [
+				new OpenLayers.Control.LayerSwitcher(),
+		        new OpenLayers.Control.Attribution(),
+		        new OpenLayers.Control.Navigation({
+		            dragPanOptions: {
+		                enableKinetic: true
+		            }
+		        }),
+		        new OpenLayers.Control.Zoom(),
+		        new OpenLayers.Control.Permalink({anchor: true})
+		    ]
+		});
+		
+        map.setCenter(new OpenLayers.LonLat(-87.63,41.88).transform(new OpenLayers.Projection("EPSG:4326"),map.getProjectionObject()), zoom);      
+    }  
+</script>
+</head>
+<body onload="init()">
+    <div id="map"></div>
+</body>
+</html>

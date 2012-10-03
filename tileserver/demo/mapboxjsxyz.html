@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.5/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v0.6.5/mapbox.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+<div id='map'>
+</div>
+<script>
+var m = mapbox.map('map');
+m.addLayer(mapbox.layer().id('examples.map-sjm2w6i9'));
+var template = '../chicago/{Z}/{X}/{Y}.png';
+m.addLayer(new MM.TemplatedLayer(template));
+m.ui.attribution.add()
+    .content('Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.');
+m.ui.zoomer.add();
+m.ui.zoombox.add();
+m.centerzoom({ lat:41.88, lon: -87.63 }, 12);
+</script>
+
+</body>
+</html>
+
