@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>uDig Example</title>
+  <!-- POWERED BY TILESERVER.PHP -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=8">
+  <!--[if lte IE 6]>
+  <meta http-equiv="refresh" content="0; url=http://www.ie6countdown.com/" />
+  <script type="text/javascript">window.top.location = 'http://www.ie6countdown.com/';</script>
+  <![endif]-->
+  <!--link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen"-->
+  <style>
+   body {padding: 0; margin: 0; width: 100%; height: 100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; color: #333; }
+   #header { position: fixed; top:0; left:0; width:100%; height: 45px; z-index:1200; /* box-shadow: 0px 3px 5px rgba(50, 50, 50, 0.5); */ }
+   #headershade { position: absolute; top:45px; left:0; width:100%; height: 2px; z-index:1200; background-color: rgba(50, 50, 50, 0.2); } 
+   #howto { position: absolute; top:0; padding: 60px; width:100%; height:100%; }
+   #header { overflow:hidden; background: #fff; border-bottom: 1px solid #ccc; background-color: rgba(255, 255, 255, 0.9) }
+   #footer { position: fixed; margin: 2 auto; bottom:0; left:0; width:100%; height: 15px; z-index:1200; text-align: center;}
+   #header h1 { margin:10px; margin-left:20px; font-size: 16pt; font-weight:normal; text-shadow: 1px 1px 1px #DDD; display: inline; line-height: 42px; }
+   h2 { color: #fff !important; font-size: 28px; }
+   h3 { color: #fff !important; font-size: 18px; }
+   h4 { color: #333 !important; font-size: 18px; }
+   h5 { color: #333 !important; font-size: 14px; }
+   h6 { color: #333 !important; font-size: 12px; }
+   hr { border:0; height:20px; }
+   img { box-shadow: 2px 2px 3px #aaaaaa; }
+  </style>
+  <!--script src="../../js/OpenLayers.mobile.wmts.js"></script-->
+  <script>
+// Get rid of address bar on iphone/ipod
+var fixSize = function() {
+    window.scrollTo(0,0);
+    document.body.style.height = '100%';
+    if (!(/(iphone|ipod)/.test(navigator.userAgent.toLowerCase()))) {
+        if (document.body.parentNode) {
+            document.body.parentNode.style.height = '100%';
+        }
+    }
+};
+setTimeout(fixSize, 700);
+setTimeout(fixSize, 1500);
+</script>
+</head>
+<body>
+<div id="content">
+<div id="header">
+  <h1>TileServer OpenSource Project v0.1: Demos</h1>
+  <a href="http://localhost:8888/tileserverdemo/index.php">Usage details (APIs, WMTS, ArcGIS, etc)</a> |
+  <a href="http://localhost:8888/tileserverdemo/index.php">Message</a>
+</div>
+<div id="howto">
+<h4>Loading XYZ tiles in uDig Desktop GIS</h4>
+<h5>1. Under the Layer Menu select Add (or Crtl+L then A)</h5>
+<img src="udig1.jpg">
+<br>
+<h5>3. Choose Web Map Tiles and select Next</h5>
+<img  src="udig2.jpg">
+<br>
+<h5>4. Select Custom Server and enter the Url path to XYZ tiles, click Next</h5>
+<img src="udig3.jpg">
+<br>
+<h5>5. Map tiles are displayed in uDig as an XYZ layer</h5>
+<img src="udig4.jpg">
+<br>
+<br>
+</div>
+</div>
+<div id="footer">
+	<a href="http://www.github.com/klokantech/tileserver.php/">&nbspTileServer.php</a> project by
+	<a href="http://www.klokantech.com/"> Klokan Technologies</a>
+</div>
+</body>
+</html>

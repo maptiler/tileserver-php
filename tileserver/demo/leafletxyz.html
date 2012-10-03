@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+	<title>Leaflet Example</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.css" />
+	<!--[if lte IE 8]>
+	    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.ie.css" />
+	<![endif]-->
+	<script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.js"></script>
+	<style>
+		body {
+			padding: 0;
+			margin: 0;
+		}
+		html, body, #map {
+			height: 100%;
+		}
+	</style>	
+</head>
+<body>
+	<!--div id="map" style="width: 600px; height: 400px"></div-->
+	<div id="map"></div>
+	<script>
+		var cloudmadeAttribution = 'Map data &copy; 2012 OpenStreetMap contributors, Imagery &copy; 2012 CloudMade',
+			cloudmadeUrl = 'http://{s}.tile.cloudmade.com/C644D90FB68B441A974CDEA857189019/{styleId}/256/{z}/{x}/{y}.png';
+			
+	    var minimal = new L.TileLayer(cloudmadeUrl, {attribution:cloudmadeAttribution, styleId: 22677}),
+        	midnightCommander = new L.TileLayer(cloudmadeUrl, {attribution:cloudmadeAttribution, styleId: 999}),
+			fresh = new L.TileLayer(cloudmadeUrl, {attribution:cloudmadeAttribution, styleId: 998});
+				
+		var xyzurl = '../chicago/{z}/{x}/{y}.png'
+			
+		var xyzlyr = new L.TileLayer(xyzurl,{minZoom: 4, maxZoom: 16, errorTileUrl: '../chicago/none.png', tileSize:256, scheme: 'xyz'});	
+				
+		var map = new L.Map('map', {center: new L.LatLng(41.88, -87.63), zoom: 13, layers: [fresh, xyzlyr]});
+		
+		var baseMaps = {
+			"Fresh": fresh,
+			"Minimal": minimal,
+			"Night View": midnightCommander
+		};
+
+		var overlayMaps = {
+			"Chicago": xyzlyr,
+		};
+		
+		layersControl = new L.Control.Layers(baseMaps, overlayMaps);
+		
+		map.addControl(layersControl);
+		
+	</script>
+</body>
+</html>

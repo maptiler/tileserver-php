@@ -36,11 +36,11 @@ body { overflow:hidden; padding: 0; margin: 0; width: 100%; height: 100%; font-f
 #header { position: absolute; top:0; left:0; width:100%; height: 45px; z-index:1200; /* box-shadow: 0px 3px 5px rgba(50, 50, 50, 0.5); */ }
 #headershade { position: absolute; top:45px; left:0; width:100%; height: 2px; z-index:1200; background-color: rgba(50, 50, 50, 0.2); }
 #map { position: absolute; top:0; left:0; width:100%; height:100%; }
+
 #button { position:absolute; right:10px; top:6px; }
 #button-mobile { position:absolute; right:10px; top:6px; width:30px; }
 a { text-decoration: none; color: #4183C4; }
 a:hover { text-decoration: underline; }
-
 .fade  { padding:10%; overflow-y: auto; position:absolute; top:45px;left:0;right:0;bottom:0; text-align:center; background-color: #666; background-color: rgba(0, 0, 0, 0.6); z-index:1100; color: #ddd; font-weight:bold; text-shadow: 0px 1px 0px black; }
 .fade a { color: #90C6FF; }
 
