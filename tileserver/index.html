@@ -41,7 +41,7 @@ function toggle(view) {
   </script>
 </head>
 
-<body>
+<body onLoad="toggle('usage');">
 <div id="content">
 <div id="header">
   <h1>TileServer OpenSource Project v0.1: [map name]</h1>
@@ -96,9 +96,9 @@ function toggle(view) {
   This website is directly optimized for mobile phones and tablets.<br/>
   The map can be easily used in other websites, mobile devices or traditional desktop applications.
   <h3>How to load this map in a desktop software:</h3>
-  <a href="#">Google Earth</a> | <a href="#">QuantumGIS (qgis)</a> | <a href="#">UDig</a> | <a href="#">ESRI ArcGIS Desktop 9.3+</a> | <a href="#">ESRI ArcGIS Desktop 10.1+</a>
+  <a href="#">Google Earth</a> | <a href="demo/qgis/qgis.html">QuantumGIS (qgis) 1.9+</a> | <a href="demo/udig/udig.html">UDig</a> | <a href="demo/abt/abt.html">ESRI ArcGIS Desktop 9.3+</a> | <a href="demo/arcgis10/arcgis.html">ESRI ArcGIS Desktop 10.1+</a>
   <h3>Use this map with web mapping API:</h3>
-  <a href="#">Google Maps V3</a> | <a href="#">OpenLayers</a> | <a href="#">Leaflet</a>
+  <a href="chicago/googlemaps.html">Google Maps V3</a> | <a href="demo/openlayersxyz.html">OpenLayers XYZ</a> | <a href="demo/openlayerswmts.html">OpenLayers WMTS</a> | <a href="demo/leafletxyz.html">Leaflet</a> | <a href="demo/mapboxjsxyz.html">Mapbox</a>
   <h3>Or standardized protocols:</h3>
   <a href="#">WMTS</a> | <a href="#">TMS</a> | <a href="#">QuadKey</a> | <a href="#">KML</a>
   <p>
