@@ -68,7 +68,7 @@ else:
     $format = $m['format'];
     $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/png';
 ?>
-<TileMap version="1.0.0" tilemapservice="<?php echo $baseUrl.$basename ?>">
+<TileMap version="1.0.0" tilemapservice="<?php echo $baseUrl.$basename ?>" type="InvertedTMS">
 	<Title><?php echo htmlspecialchars($title) ?></Title>
 	<Abstract><?php echo htmlspecialchars($description) ?></Abstract>
 	<SRS><?php echo $srs ?></SRS>
