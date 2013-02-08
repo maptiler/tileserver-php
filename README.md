@@ -1,5 +1,5 @@
 =================================================
-TileServer.php - OGC Web Map Tiling Server (WMTS)
+TileServer PHP - OGC Web Map Tiling Server (WMTS)
 =================================================
 
 This server distributes maps to desktop, web, and mobile applications from
