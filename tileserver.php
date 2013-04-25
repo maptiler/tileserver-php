@@ -125,9 +125,11 @@ endif;
 function maps() {
   $maps = array();
   # Scan all directories with metadata.json
-  foreach (glob('*/metadata.json') as $mj) $maps[] = metadataFromMetadataJson($mj); 
+  $mjs = glob('*/metadata.json');
+  if ($mjs) foreach ($mjs as $mj) $maps[] = metadataFromMetadataJson($mj); 
   # Scan all mbtiles
-  foreach (glob('*.mbtiles') as $mbt) $maps[] = metadataFromMbtiles($mbt);
+  $mbts = glob('*.mbtiles');
+  if ($mbts) foreach ($mbts as $mbt) $maps[] = metadataFromMbtiles($mbt);
   return $maps;
 }
 
