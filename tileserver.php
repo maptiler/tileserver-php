@@ -24,6 +24,8 @@ $service = (array_key_exists('service', $_GET)) ? $_GET['service'] : "";
 $layer = (array_key_exists('layer', $_GET)) ? $_GET['layer'] : "";
 $callback = (array_key_exists('callback', $_GET)) ? $_GET['callback'] : "";
 
+# CORS header
+header('Access-Control-Allow-Origin: *');
 
 # ------------
 # TEST SERVICE
