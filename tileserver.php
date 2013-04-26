@@ -42,7 +42,7 @@ if ($service == 'test') {
 if ($service == 'html'):
   $maps = maps();
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
