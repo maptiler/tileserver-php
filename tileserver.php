@@ -47,7 +47,10 @@ if ($service == 'html'):
 <head>
   <meta charset="utf-8"/>
   <title><?php echo $config['serverTitle'] ?></title>
-<html>
+  <link rel="stylesheet" type="text/css" href="http://maptilercdn.s3.amazonaws.com/tileserver.css" />
+  <script src="http://maptilercdn.s3.amazonaws.com/tileserver.js"></script>
+<body>
+<script>tileserver(null,'<?php echo $baseUrl ?>tms','<?php echo $baseUrl ?>wmts');</script>
 <h1>Welcome to <?php echo $config['serverTitle'] ?></h1>
 <p>
 This server distributes maps to desktop, web, and mobile applications.
