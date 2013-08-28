@@ -15,6 +15,10 @@ standardized way - practically from any ordinary web hosting.
 It is easy to install - just copy the project files to a PHP-enabled
 directory along with your map data containing metadata.json file.
 
+It comes with an online interface showing the list of the maps and step-by-step guides for desktop GIS software:
+
+![tileserver-screenshot](https://f.cloud.github.com/assets/59284/1041807/a040160c-0fdb-11e3-8941-ab367b2a648d.png)
+
 This project is developed in PHP, not because it is the best language for
 development of web applications, but because it maximally simplify the
 deployment on large number of web hosting providers including various free
