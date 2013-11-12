@@ -199,7 +199,7 @@ function metadataValidation( $metadata ) {
 function metadataTileJson( $metadata ) {
   global $config;
   $metadata['tilejson'] = '2.0.0';
-  $metadata['sheme'] = 'xyz';
+  $metadata['scheme'] = 'xyz';
   $tiles = array();
   foreach($config['baseUrls'] as $url)
     $tiles[] = $url.$metadata['basename'].'/{z}/{x}/{y}.'.$metadata['format'];
