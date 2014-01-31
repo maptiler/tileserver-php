@@ -6,7 +6,7 @@ This server distributes maps to desktop, web, and mobile applications from
 a standard Apache+PHP web hosting.
 
 It is a free and open-source project implementing OGC WMTS standard for
-pre-rendered map tiles made with MapTiler Cluster, MapTiler, GDAL2Tiles,
+pre-rendered map tiles made with [MapTiler](http://www.maptiler.com/), GDAL2Tiles,
 or available as MBTiles files.
 
 It is the easiest and cheapest way how to serve zoomable maps in a
@@ -48,7 +48,7 @@ the TileServer.php Server should display you a welcome message and further
 instructions.
 
 Then you can upload to the web hosting your mapping data - a directory with
-tiles rendered with MapTiler Cluster.
+tiles rendered with [MapTiler](http://www.maptiler.com/).
 
 Tiles produced by open-source GDAL2Tiles or MapTiler and tiles in .mbtiles
 files can be easily converted to required structure (XYZ with top-left origin
