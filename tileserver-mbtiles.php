@@ -79,18 +79,16 @@ if (isset($_GET['tileset'])) {
         }
         $grid = rtrim($grid, ',') . '}}';
 
-        // CORS header
+        // CORS headers
         header('Access-Control-Allow-Origin: *');
 
-        //TODO: Process callback and ext but first in htaccess or route
         if (isset($_GET['callback'])) {
+          header("Content-Type:text/javascript charset=utf-8");
           echo $_GET['callback'] . '(' . $grid . ');';
-        } elseif ($_GET['ext'] == 'jsonp') {
-          echo 'grid(' . $grid . ');';
         } else {
-          echo $grid;
+          header("Content-Type:text/javascript; charset=utf-8");
+          echo 'grid(' . $grid . ');';
         }
-        die;
       }
     }
   } catch (PDOException $e) {

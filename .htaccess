@@ -35,6 +35,7 @@ RewriteRule ^(.+).jpeg$ $1.jpg [L]
 # MBTiles support at /layer/z/x/y.ext - loads the tile from mbtiles with php
 # TODO: serve also 404 errors for tiles
 RewriteRule ^([^\/]+\.mbtiles)\/.*?(\d+)\/(\d+)\/(\d+)\.(\w+)$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=$5 [L]
+RewriteRule ^([^\/]+\.mbtiles)\/.*?(\d+)\/(\d+)\/(\d+)\.grid.json?$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=grid [QSA,L]
 # TODO: use mod_sqlite if available to map the tiles to URL directly by apache
 
 # WMTS KVP
@@ -87,6 +88,7 @@ RewriteRule ^(.+)/tms$ tileserver-tms.php?layer=$1 [QSA,L]
 
 # TileJSON JSONP wrapper for MapBOX.js API
 RewriteRule ^maps.jsonp?$ tileserver.php?service=json [QSA,L]
+RewriteCond %{REQUEST_URI} !\.grid\.json  [NC]
 RewriteRule ^(.+).jsonp?$ tileserver.php?service=json&layer=$1 [QSA,L]
 
 # If-Modified-Since (if php is not installed as cgi then comment lines below)
