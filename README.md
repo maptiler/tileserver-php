@@ -101,6 +101,13 @@ Supported protocols:
   
   Exposed at http://[...]/layer/z/x/y.ext
   
+- MapBox UTFgrid request (for existing tiles in .mbtiles with UTFgrid support). Callback is supported 
+
+  Example https://www.mapbox.com/demo/visiblemap/
+  Specification https://github.com/mapbox/utfgrid-spec
+  
+  Exposed at http://[...]/layer/z/x/y.grid.json
+  
 
 To use the OGC WMTS services point your client (desktop or web) to the URL
 of 'directory' where you installed tileserver.php project with suffix "wmts".
