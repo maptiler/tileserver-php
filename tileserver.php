@@ -108,7 +108,7 @@ endif;
 if ($service == 'json'):
   header("Content-Type:application/json; charset=utf-8");
   
-  if ($layer) {
+  if ($layer && $layer != 'tileserver') {
     $output = metadataTileJson(layer($layer));
   } else {
     $maps = maps();
