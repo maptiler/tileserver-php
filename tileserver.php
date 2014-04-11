@@ -7,7 +7,7 @@
  */
 
 Router::serve(array(
-    '/' => 'Server:getInfo',
+    '/' => 'Server:getHtml',
     '/test' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
     '/:string.json' => 'Json:getJson',
@@ -303,6 +303,9 @@ class Server {
     }
   }
 
+  /**
+   * Returns clean tile
+   */
   public function getCleanTile() {
     $png = imagecreatetruecolor(256, 256);
     imagesavealpha($png, true);
@@ -1354,8 +1357,9 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
+      //default page
       $handler_instance = new Server;
-      $handler_instance->getInfo();
+      $handler_instance->getHtml();
     }
   }
 
