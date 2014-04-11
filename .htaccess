@@ -12,8 +12,12 @@ Options -MultiViews
 
 # Mapping of the WMTS standardized URLs to real files and XML capabilities to tileserver.php
 
-RewriteEngine On
+#check htaccess functionality
+SetEnv HTACCESS on
+DirectoryIndex tileserver.php
 
+RewriteEngine on
+ 
 # WMTS RESTful
 # ------------
 # The file can be accessed directly:
@@ -32,68 +36,11 @@ RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [L]
 # rewrite .jpeg -> .jpg
 RewriteRule ^(.+).jpeg$ $1.jpg [L]
 
-# MBTiles support at /layer/z/x/y.ext - loads the tile from mbtiles with php
-# TODO: serve also 404 errors for tiles
-RewriteRule ^([^\/]+\.mbtiles)\/.*?(\d+)\/(\d+)\/(\d+)\.(\w+)$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=$5 [L]
-RewriteRule ^([^\/]+\.mbtiles)\/.*?(\d+)\/(\d+)\/(\d+)\.grid.json?$ tileserver-mbtiles.php?tileset=$1&z=$2&x=$3&y=$4&ext=grid [QSA,L]
-# TODO: use mod_sqlite if available to map the tiles to URL directly by apache
+# Not modified HTTP 302
+RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
+RewriteRule .* - [E=HTTP_IF_NONE_MATCH:%{HTTP:If-None-Match}]
 
-# WMTS KVP
-# --------
-# map the /?key=value&... -> /layer/z/x/y.ext KVP getTile queries directly to files
-
-# format passed as mime-extension, cleaning formats (jpeg->jpg)
-RewriteCond %{QUERY_STRING} ^(.*)format=image/jpeg(.*)$ [NC]
-RewriteRule ^(.*)$ $1?%1format=jpg%2 [N]
-RewriteCond %{QUERY_STRING} ^(.*)format=jpeg(.*)$ [NC]
-RewriteRule ^(.*)$ $1?%1format=jpg%2 [N]
-RewriteCond %{QUERY_STRING} ^(.*)format=image/png(.*)$ [NC]
-RewriteRule ^(.*)$ $1?%1format=png%2 [N]
-
-# variable order of keys: TODO: sort the same way as mime-extension to fixed order
-RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*tilematrix=(\d+).*tilerow=(\d+).*tilecol=(\d+).*format=(\w+).*$ [NC]
-RewriteRule ^ %1/%2/%3/%4.%5 [L]
-RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*format=(\w+).*tilematrix=(\d+).*tilerow=(\d+).*tilecol=(\d+).*$ [NC]
-RewriteRule ^ %1/%3/%5/%4.%2 [L]
-RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*tilematrix=(\d+).*tilecol=(\d+).*tilerow=(\d+).*format=(\w+).*$ [NC]
-RewriteRule ^ %1/%2/%4/%3.%5 [L]
-# Example: http://www.tileserver.com/wmts?request=getTile&layer=grandcanyon&tileMatrix=10&tilerow=192&tilecol=401&format=png
-# Example: http://www.tileserver.com/wmts?service=WMTS&request=GetTile&version=1.0.0&layer=ne2geo&style=&format=image/jpeg&TileMatrixSet=WGS84&TileMatrix=1&TileRow=2&TileCol=2
-
-# WMTS ServiceMetadata (GetCapabilities)
-# --------------------------------------
-RewriteRule ^.*WMTSCapabilities.xml$ tileserver-wmts.php [QSA,L]
-RewriteRule ^wmts$ tileserver-wmts.php [QSA,L]
-RewriteCond %{QUERY_STRING} ^.*request=getcapabilities.*$ [NC]
-RewriteRule ^ tileserver-wmts.php [L]
-# Example: http://www.tileserver.com/dev/?service=WMTS&version=1.0.0&request=GetCapabilities
-
-# TMS XML (ArcBruTile)
-# --------------------
-RewriteRule ^tms$ tileserver-tms.php [QSA,L]
-RewriteRule ^(.+)/tms$ tileserver-tms.php?layer=$1 [QSA,L]
-# Example: http://www.tileserver.com/dev/?service=WMTS&version=1.0.0&request=GetCapabilities
-
-# request for non-existent tiles -> layer/none.png or none.png
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^([\w\d\._-]+)/(\d+)/(\d+)/(\d+)\.png$ $1/none.png [L]
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^([\w\d\._-]+)/none\.png$ none.png [L]
-
-# request for non-existent tiles -> layer/none.jpg or none.jpg
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^([\w\d\._-]+)/(\d+)/(\d+)/(\d+)\.jpg$ $1/none.jpg [L]
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^([\w\d\._-]+)/none\.jpg$ none.jpg [L]
-
-# TileJSON JSONP wrapper for MapBOX.js API
-RewriteRule ^maps.jsonp?$ tileserver.php?service=json [QSA,L]
-RewriteCond %{REQUEST_URI} !\.grid\.json  [NC]
-RewriteRule ^(.+).jsonp?$ tileserver.php?service=json&layer=$1 [QSA,L]
-
-# If-Modified-Since (if php is not installed as cgi then comment lines below)
-#RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
-#RewriteRule .* - [E=HTTP_IF_NONE_MATCH:%{HTTP:If-None-Match}]
-
-# handle all request on the root '/' by tileserver.php
-RewriteRule ^$ tileserver.php?service=html [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(tileserver\.php)
+RewriteRule ^(.*)$ tileserver.php/$1 [L]
