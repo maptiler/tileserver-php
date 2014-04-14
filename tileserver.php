@@ -1,4 +1,5 @@
 <?php
+
 /*
  * TileServer.php project
  * ======================
@@ -87,7 +88,7 @@ class Server {
   }
 
   /**
-   * Processing params from router
+   * Processing params from router <server>/<layer>/<z>/<x>/<y>.ext
    * @param array $params
    */
   public function setParams($params) {
@@ -96,8 +97,8 @@ class Server {
     }
     if (isset($params[2])) {
       $this->z = $params[2];
-      $this->y = $params[3];
-      $this->x = $params[4];
+      $this->x = $params[3];
+      $this->y = $params[4];
     }
     if (isset($params[5])) {
       $this->ext = $params[5];
@@ -107,7 +108,7 @@ class Server {
   /**
    * Get variable don't independent on sensitivity
    * @param string $key
-   * @return string
+   * @return boolean
    */
   public function getGlobal($key) {
     $keys[] = $key;
@@ -119,8 +120,7 @@ class Server {
         return $_GET[$key];
       }
     }
-    echo 'Server: Unknown variable:' . $key;
-    die;
+    return FALSE;
   }
 
   /**
@@ -273,6 +273,10 @@ class Server {
       $z = floatval($z);
       $y = floatval($y);
       $x = floatval($x);
+      $flip = true;
+      if ($flip) {
+        $y = pow(2, $z) - 1 - $y;
+      }
       $result = $this->db->query('select tile_data as t from tiles where zoom_level=' . $z . ' and tile_column=' . $x . ' and tile_row=' . $y);
       $data = $result->fetchColumn();
       if (!isset($data) || $data === FALSE) {
@@ -298,7 +302,7 @@ class Server {
         $this->getCleanTile();
       }
     } else {
-      echo 'Server: Unknow dataset';
+      echo 'Server: Unknown or not specified dataset';
       die;
     }
   }
@@ -585,6 +589,9 @@ class Wmts extends Server {
   public function __construct($params) {
     parent::__construct();
     parent::setDatasets();
+    if (isset($params)) {
+      parent::setParams($params);
+    }
   }
 
   /**
@@ -626,7 +633,7 @@ class Wmts extends Server {
     <ows:Operation name="GetTile">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts/">
+          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts?">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>RESTful</ows:Value>
@@ -1044,13 +1051,13 @@ class Wmts extends Server {
    */
   public function getTile() {
     $request = $this->getGlobal('Request');
-    if (isset($_GET['request'])) {
+    if ($request) {
       if (strpos('/', $_GET['Format']) !== FALSE) {
         $format = explode('/', $_GET['Format']);
       } else {
         $format = $this->getGlobal('Format');
       }
-      parent::getTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileRow'), $format[1]);
+      parent::getTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format[1]);
     } else {
       parent::getTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
     }
