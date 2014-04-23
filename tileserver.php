@@ -67,9 +67,9 @@ class Server {
       //TODO if contains tileserver.php add to path
       $ru = explode('/', $_SERVER['REQUEST_URI']);
       $this->config['baseUrls'][0] = $_SERVER['HTTP_HOST'];
-      if (isset($ru[2])) {
+      if (isset($ru[2]) && !empty($ru[2]) && $ru[2] !== 'tms') {
         //autodetection for http://server/ or http://server/directory
-        //subdirectories must be specified $con
+        //subdirectories must be specified $config['baseUrls']
         $this->config['baseUrls'][0] = $this->config['baseUrls'][0] . '/' . $ru[1];
       }
     }
@@ -512,13 +512,13 @@ class Json extends Server {
     if ($basename == 'index') {
       $output = '[';
       foreach ($maps as $map) {
-        $output = $output . json_encode($this->metadataTileJson($map), JSON_UNESCAPED_SLASHES) . ',';
+        $output = $output . json_encode($this->metadataTileJson($map)) . ',';
       }
       $output = substr_replace($output, ']', -1);
     } else {
       foreach ($maps as $map) {
         if (strpos($map['basename'], $basename) !== false) {
-          $output = json_encode($this->metadataTileJson($map), JSON_UNESCAPED_SLASHES);
+          $output = json_encode($this->metadataTileJson($map));
           break;
         }
       }
