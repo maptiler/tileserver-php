@@ -67,7 +67,7 @@ class Server {
       //TODO if contains tileserver.php add to path
       $ru = explode('/', $_SERVER['REQUEST_URI']);
       $this->config['baseUrls'][0] = $_SERVER['HTTP_HOST'];
-      if (isset($ru[2]) && !empty($ru[2]) && $ru[2] !== 'tms') {
+      if (isset($ru[2]) && (!empty($ru[2]) || $ru[2] !== 'tms')) {
         //autodetection for http://server/ or http://server/directory
         //subdirectories must be specified $config['baseUrls']
         $this->config['baseUrls'][0] = $this->config['baseUrls'][0] . '/' . $ru[1];
@@ -86,11 +86,17 @@ class Server {
         $layer = $this->metadataFromMetadataJson($mj);
         array_push($this->fileLayer, $layer);
       }
-    } elseif ($mbts) {
+    } else {
+      $e = 1;
+    }
+    if ($mbts) {
       foreach ($mbts as $mbt) {
         $this->dbLayer[] = $this->metadataFromMbtiles($mbt);
       }
     } else {
+      $e = 1;
+    }
+    if (isset($e)) {
       echo 'Server: No JSON or MBtiles file with metadata';
       die;
     }
@@ -152,7 +158,7 @@ class Server {
    * @param string $layer
    * @return boolean
    */
-  public function isFileLyer($layer) {
+  public function isFileLayer($layer) {
     foreach ($this->fileLayer as $DBLayer) {
       if ($DBLayer['basename'] == $layer) {
         return TRUE;
@@ -302,7 +308,7 @@ class Server {
         header('Content-type: image/' . $format);
         echo $data;
       }
-    } elseif ($this->isFileLyer($tileset)) {
+    } elseif ($this->isFileLayer($tileset)) {
       $name = './' . $tileset . '/' . $z . '/' . $y . '/' . $x . '.' . $ext;
       if ($fp = @fopen($name, 'rb')) {
         header('Content-Type: image/' . $ext);
@@ -536,7 +542,11 @@ class Json extends Server {
   public function getJson() {
     header('Access-Control-Allow-Origin: *');
     header("Content-Type:application/javascript charset=utf-8");
-    echo $this->createJson($this->layer);
+    if ($this->callback !== 'grid') {
+      echo $this->callback . '(' . $this->createJson($this->layer) . ');';
+    } else {
+      echo $this->createJson($this->layer);
+    }
   }
 
   /**
