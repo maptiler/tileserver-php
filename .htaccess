@@ -13,10 +13,15 @@ Options -MultiViews
 # Mapping of the WMTS standardized URLs to real files and XML capabilities to tileserver.php
 
 #check htaccess functionality
-SetEnv HTACCESS on
 DirectoryIndex tileserver.php
 
 RewriteEngine on
+
+#some hostings require RewriteBase e.g. 1&1.com
+#RewriteBase /
+#RewriteBase /folder/
+
+AcceptPathInfo on
  
 # WMTS RESTful
 # ------------

@@ -7,6 +7,10 @@
  * Copyright (C) 2014 - Klokan Technologies GmbH
  */
 
+global $config;
+$config['serverTitle'] = 'TileServer-php v0.2';
+//$config['baseUrls'] = ['t0.server.com', 't1.server.com'];
+
 Router::serve(array(
     '/' => 'Server:getHtml',
     '/test' => 'Server:getInfo',
@@ -54,15 +58,21 @@ class Server {
    */
   private $db;
 
-  /**
+  /** sercer.com/ts.php
    * Set config
    */
   public function __construct() {
-    $ru = explode('/', $_SERVER['REQUEST_URI']);
-    $reqestUri = $_SERVER['HTTP_HOST'] . '/' . $ru[1] . '/';
-    $this->config['baseUrls'] = array('http://' . $reqestUri);
-    $this->config['serverTitle'] = 'TileServer-php v0.2';
-    $this->config['host'] = $reqestUri;
+    $this->config = $GLOBALS['config'];
+    if (!isset($this->config['baseUrls'])) {
+      //TODO if contains tileserver.php add to path
+      $ru = explode('/', $_SERVER['REQUEST_URI']);
+      $this->config['baseUrls'][0] = $_SERVER['HTTP_HOST'];
+      if (isset($ru[2])) {
+        //autodetection for http://server/ or http://server/directory
+        //subdirectories must be specified $con
+        $this->config['baseUrls'][0] = $this->config['baseUrls'][0] . '/' . $ru[1];
+      }
+    }
   }
 
   /**
@@ -76,8 +86,7 @@ class Server {
         $layer = $this->metadataFromMetadataJson($mj);
         array_push($this->fileLayer, $layer);
       }
-    }
-    if ($mbts) {
+    } elseif ($mbts) {
       foreach ($mbts as $mbt) {
         $this->dbLayer[] = $this->metadataFromMbtiles($mbt);
       }
@@ -193,6 +202,8 @@ class Server {
     if (array_key_exists('bounds', $metadata)) {
 // TODO: Calculate bounds from tiles if bounds is missing - with GlobalMercator
       $metadata['bounds'] = array_map('floatval', explode(',', $metadata['bounds']));
+    } else {
+      $metadata['bounds'] = array(-180, -85.051128779807, 180, 85.051128779807);
     }
     if (!array_key_exists('profile', $metadata)) {
       $metadata['profile'] = 'mercator';
@@ -378,9 +389,6 @@ class Server {
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title></head><body>';
-    if (!isset($_SERVER['HTACCESS'])) {
-      echo '<p>Warning: No .htaccess support!</p>';
-    }
     foreach ($maps as $map) {
       $extend = '[';
       foreach ($map['bounds'] as $ext) {
@@ -407,13 +415,10 @@ class Server {
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
     echo '<link rel="stylesheet" type="text/css" href="http://maptilercdn.s3.amazonaws.com/tileserver.css" />
           <script src="http://maptilercdn.s3.amazonaws.com/tileserver.js"></script><body>
-          <script>tileserver(null,"' . $this->config['baseUrls'][0] . 'tms/","' . $this->config['baseUrls'][0] . 'wmts/");</script>
+          <script>tileserver("http://' . $this->config['baseUrls'][0] . '/index.jsonp","http://' . $this->config['baseUrls'][0] . '/tms/","http://' . $this->config['baseUrls'][0] . '/wmts/");</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
           <p>The mapping data are available as OpenGIS Web Map Tiling Service (OGC WMTS), OSGEO Tile Map Service (TMS), and popular XYZ urls described with TileJSON metadata.</p>';
-    if (!isset($_SERVER['HTACCESS'])) {
-      echo '<p>Warning: No .htaccess support!</p>';
-    }
     if (!isset($maps)) {
       echo '<h3 style="color:darkred;">No maps available yet</h3>
             <p style="color:darkred; font-style: italic;">
@@ -490,8 +495,9 @@ class Json extends Server {
     $metadata['tilejson'] = '2.0.0';
     $metadata['scheme'] = 'xyz';
     $tiles = array();
-//foreach ($this->config['baseUrls'] as $url)
-    $tiles[] = 'http://' . $this->config['host'] . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
+    foreach ($this->config['baseUrls'] as $url) {
+      $tiles[] = 'http://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
+    }
     $metadata['tiles'] = $tiles;
     return $metadata;
   }
@@ -516,11 +522,10 @@ class Json extends Server {
           break;
         }
       }
-      if (!isset($output)) {
-        $output = 'TileServer: unknown map ' . $basename;
-        echo 'TileServer: unknown map ' . $basename;
-        die;
-      }
+    }
+    if (!isset($output)) {
+      echo 'TileServer: unknown map ' . $basename;
+      die;
     }
     return $output;
   }
@@ -612,7 +617,7 @@ class Wmts extends Server {
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts/1.0.0/WMTSCapabilities.xml">
+          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts/1.0.0/WMTSCapabilities.xml">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>RESTful</ows:Value>
@@ -620,7 +625,7 @@ class Wmts extends Server {
             </ows:Constraint>
           </ows:Get>
           <!-- add KVP binding in 10.1 -->
-          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts?">
+          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts?">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>KVP</ows:Value>
@@ -633,14 +638,14 @@ class Wmts extends Server {
     <ows:Operation name="GetTile">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts?">
+          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts?">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>RESTful</ows:Value>
               </ows:AllowedValues>
             </ows:Constraint>
           </ows:Get>
-          <ows:Get xlink:href="' . $this->config['baseUrls'][0] . 'wmts?">
+          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts?">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>KVP</ows:Value>
@@ -687,8 +692,8 @@ class Wmts extends Server {
       <TileMatrixSetLink>
         <TileMatrixSet>' . $tileMatrixSet . '</TileMatrixSet>
       </TileMatrixSetLink>
-      <ResourceURL format="' . $mime . '" resourceType="tile" template="'
-      . $this->config['baseUrls'][0] . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
+      <ResourceURL format="' . $mime . '" resourceType="tile" template="http://'
+      . $this->config['baseUrls'][0] . '/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
     </Layer>';
     }
     echo '<TileMatrixSet>
@@ -1042,7 +1047,7 @@ class Wmts extends Server {
       </TileMatrix>
     </TileMatrixSet>
   </Contents>
-  <ServiceMetadataURL xlink:href="' . $this->config['baseUrls'][0] . 'wmts/1.0.0/WMTSCapabilities.xml"/>
+  <ServiceMetadataURL xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts/1.0.0/WMTSCapabilities.xml"/>
 </Capabilities>';
   }
 
@@ -1122,7 +1127,7 @@ class Tms extends Server {
         $srs = "EPSG:3857";
         echo '<TileMap title="' . $title . '" srs="' . $srs
         . '" type="InvertedTMS" ' . 'profile="global-' . $profile
-        . '" href="' . $this->config['baseUrls'][0] . $basename . '/tms" />';
+        . '" href="http://' . $this->config['baseUrls'][0] . '/' . $basename . '/tms" />';
       }
     }
     echo '</TileMaps></TileMapService>';
@@ -1159,7 +1164,7 @@ class Tms extends Server {
     }
     $mime = ($m['format'] == 'jpg') ? 'image/jpeg' : 'image/png';
     header("Content-type: application/xml");
-    echo '<TileMap version="1.0.0" tilemapservice="' . $this->config['baseUrls'][0] . $m['basename'] . '" type="InvertedTMS">
+    echo '<TileMap version="1.0.0" tilemapservice="http://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '" type="InvertedTMS">
   <Title>' . htmlspecialchars($title) . '</Title>
   <Abstract>' . htmlspecialchars($description) . '</Abstract>
   <SRS>' . $srs . '</SRS>
@@ -1168,7 +1173,7 @@ class Tms extends Server {
   <TileFormat width="256" height="256" mime-type="' . $mime . '" extension="' . $m['format'] . '"/>
   <TileSets profile="global-' . $m['profile'] . '">';
     for ($zoom = $m['minzoom']; $zoom < $m['maxzoom'] + 1; $zoom++) {
-      echo '<TileSet href="' . $this->config['baseUrls'] [0] . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
+      echo '<TileSet href="http://' . $this->config['baseUrls'] [0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
     }
     echo'</TileSets></TileMap>';
   }
@@ -1364,7 +1369,7 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
-      //default page
+//default page
       $handler_instance = new Server;
       $handler_instance->getHtml();
     }
