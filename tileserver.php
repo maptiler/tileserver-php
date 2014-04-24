@@ -18,16 +18,13 @@ Router::serve(array(
     '/:string.json' => 'Json:getJson',
     '/:string.jsonp' => 'Json:getJsonp',
     '/:string/:number/:number/:number.grid.json' => 'Json:getUTFGrid',
-    '/wmts/' => 'Wmts:getCapabilities',
-    '/wmts' => 'Wmts:getTile',
+    '/wmts' => 'Wmts:get',
     '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:getCapabilities',
     '/:string/:number/:number/:number.:string' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
-    '/tms/' => 'Tms:getCapabilities',
-    '/:string/tms' => 'Tms:getLayerCapabilities',
-    '/:string/tms/' => 'Tms:getLayerCapabilities',
+    '/tms/:string' => 'Tms:getLayerCapabilities',
     '/:string/tms/:number/:number/:number.:string' => 'Tms:getTile',
-));
+ ));
 
 /**
  * Server base
@@ -63,16 +60,6 @@ class Server {
    */
   public function __construct() {
     $this->config = $GLOBALS['config'];
-    if (!isset($this->config['baseUrls'])) {
-      //TODO if contains tileserver.php add to path
-      $ru = explode('/', $_SERVER['REQUEST_URI']);
-      $this->config['baseUrls'][0] = $_SERVER['HTTP_HOST'];
-      if (isset($ru[2]) && (!empty($ru[2]) || $ru[2] !== 'tms')) {
-        //autodetection for http://server/ or http://server/directory
-        //subdirectories must be specified $config['baseUrls']
-        $this->config['baseUrls'][0] = $this->config['baseUrls'][0] . '/' . $ru[1];
-      }
-    }
   }
 
   /**
@@ -96,10 +83,10 @@ class Server {
     } else {
       $e = 1;
     }
-    if (isset($e)) {
-      echo 'Server: No JSON or MBtiles file with metadata';
-      die;
-    }
+//    if (isset($e)) {
+//      echo 'Server: No JSON or MBtiles file with metadata';
+//      die;
+//    }
   }
 
   /**
@@ -125,14 +112,11 @@ class Server {
    * @param string $key
    * @return boolean
    */
-  public function getGlobal($key) {
-    $keys[] = $key;
-    $keys[] = strtolower($key);
-    $keys[] = strtoupper($key);
-    $keys[] = ucfirst($key);
-    foreach ($keys as $key) {
-      if (isset($_GET[$key])) {
-        return $_GET[$key];
+  public function getGlobal($isKey) {
+    $get = $_GET;
+    foreach ($get as $key => $value) {
+      if(strtolower($isKey) == strtolower($key)){
+        return $value;
       }
     }
     return FALSE;
@@ -419,9 +403,9 @@ class Server {
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
-    echo '<link rel="stylesheet" type="text/css" href="http://maptilercdn.s3.amazonaws.com/tileserver.css" />
-          <script src="http://maptilercdn.s3.amazonaws.com/tileserver.js"></script><body>
-          <script>tileserver("http://' . $this->config['baseUrls'][0] . '/index.jsonp","http://' . $this->config['baseUrls'][0] . '/tms/","http://' . $this->config['baseUrls'][0] . '/wmts/");</script>
+    echo '<link rel="stylesheet" type="text/css" href="//tileserver.com/v1/index.css" />
+          <script src="//tileserver.com/v1/index.js"></script><body>
+          <script>tileserver(null,"http://' . $this->config['baseUrls'][0] . '/tms/","http://' . $this->config['baseUrls'][0] . '/wmts/");</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
           <p>The mapping data are available as OpenGIS Web Map Tiling Service (OGC WMTS), OSGEO Tile Map Service (TMS), and popular XYZ urls described with TileJSON metadata.</p>';
@@ -606,6 +590,18 @@ class Wmts extends Server {
     parent::setDatasets();
     if (isset($params)) {
       parent::setParams($params);
+    }
+  }
+
+  /**
+   * Tests request from url and call method
+   */
+  public function get(){
+    $request = $this->getGlobal('Request');
+    if($request !== FALSE && $request == 'gettile'){
+      $this->getTile();
+    }else{
+      $this->getCapabilities();
     }
   }
 
@@ -1069,10 +1065,11 @@ class Wmts extends Server {
     if ($request) {
       if (strpos('/', $_GET['Format']) !== FALSE) {
         $format = explode('/', $_GET['Format']);
+        $format = $format[1];
       } else {
         $format = $this->getGlobal('Format');
       }
-      parent::getTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format[1]);
+      parent::getTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format);
     } else {
       parent::getTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
     }
@@ -1137,7 +1134,7 @@ class Tms extends Server {
         $srs = "EPSG:3857";
         echo '<TileMap title="' . $title . '" srs="' . $srs
         . '" type="InvertedTMS" ' . 'profile="global-' . $profile
-        . '" href="http://' . $this->config['baseUrls'][0] . '/' . $basename . '/tms" />';
+        . '" href="http://' . $this->config['baseUrls'][0] . '/tms/' . $basename . '" />';
       }
     }
     echo '</TileMaps></TileMapService>';
@@ -1333,7 +1330,7 @@ class Router {
   /**
    * @param array $routes
    */
-  public static function serve($routes) {
+  public static function serve($routes) {    
     $request_method = strtolower($_SERVER['REQUEST_METHOD']);
     $path_info = '/';
     if (!empty($_SERVER['PATH_INFO'])) {
@@ -1347,17 +1344,20 @@ class Router {
     }
     $discovered_handler = null;
     $regex_matches = array();
-    if (isset($routes[$path_info])) {
-      $discovered_handler = $routes[$path_info];
-    } else if ($routes) {
+    
+    if ($routes) {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
           ':alpha' => '([a-zA-Z0-9-_]+)'
       );
+      global $config;
       foreach ($routes as $pattern => $handler_name) {
         $pattern = strtr($pattern, $tokens);
-        if (preg_match('#^/?' . $pattern . '/?$#', $path_info, $matches)) {
+        if (preg_match('#/?' . $pattern . '/?$#', $path_info, $matches)) {
+          if(!isset($config['baseUrls'])){
+            $config['baseUrls'][0] = $_SERVER['HTTP_HOST'].preg_replace('#/?'.$pattern.'/?$#', '', $path_info);
+          }
           $discovered_handler = $handler_name;
           $regex_matches = $matches;
           break;
@@ -1379,9 +1379,9 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
-//default page
-      $handler_instance = new Server;
-      $handler_instance->getHtml();
+      echo 'Router: No route'; die;
+      //$handler_instance = new Server;
+      //$handler_instance->getHtml();
     }
   }
 

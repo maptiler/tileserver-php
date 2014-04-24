@@ -2,8 +2,8 @@
 
 # Restrictions for data crawlers
 Options -Indexes
-Options +FollowSymLinks
-Options -MultiViews
+#Options +FollowSymLinks
+#Options -MultiViews
 
 # Optional CORS header for cross-domain origin access to all data
 #<ifModule mod_headers.c>
@@ -20,8 +20,6 @@ RewriteEngine on
 #some hostings require RewriteBase e.g. 1&1.com
 #RewriteBase /
 #RewriteBase /folder/
-
-AcceptPathInfo on
  
 # WMTS RESTful
 # ------------
@@ -48,4 +46,4 @@ RewriteRule .* - [E=HTTP_IF_NONE_MATCH:%{HTTP:If-None-Match}]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond $1 !^(tileserver\.php)
-RewriteRule ^(.*)$ tileserver.php/$1 [L]
+RewriteRule ^(.*)$ tileserver.php?/$1 [L,QSA]
