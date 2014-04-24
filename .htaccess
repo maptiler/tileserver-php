@@ -1,9 +1,7 @@
 # tileserver.php integration with Apache via .htaccess
 
 # Restrictions for data crawlers
-Options -Indexes
-#Options +FollowSymLinks
-#Options -MultiViews
+#Options -Indexes
 
 # Optional CORS header for cross-domain origin access to all data
 #<ifModule mod_headers.c>
@@ -19,7 +17,10 @@ RewriteEngine on
 
 #some hostings require RewriteBase e.g. 1&1.com
 #RewriteBase /
-#RewriteBase /folder/
+#RewriteBase /cosi/
+
+#some hostings require -MultiViews e.g. 1&1.com
+#Options -MultiViews
  
 # WMTS RESTful
 # ------------
@@ -28,12 +29,12 @@ RewriteEngine on
 
 # map /wmts/layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrixset,style,..)
 # BTW This is used only by Gaia which ignores the <ResourceURL template="...">
-RewriteRule ^wmts/([\w\d\._-]+)/.*?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$4/$3.$5 [L]
+RewriteRule ^wmts/([\w\d\._-]+)/.*?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$4/$3.$5 [N]
 # Example: http://www.tileserver.com/wmts/grandcanyon/style/tilematrixset/10/192/401.png
 
 # map /layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrix,style,..)
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [L]
+RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [N]
 # Example: http://www.tileserver.com/grandcanyon/style/tilematrixset/10/192/401.png
 
 # rewrite .jpeg -> .jpg
