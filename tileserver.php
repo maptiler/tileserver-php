@@ -52,9 +52,9 @@ class Server {
    * PDO database connection
    * @var object 
    */
-  private $db;
+  public $db;
 
-  /** sercer.com/ts.php
+  /** 
    * Set config
    */
   public function __construct() {
@@ -484,6 +484,16 @@ class Json extends Server {
       $tiles[] = 'http://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
     }
     $metadata['tiles'] = $tiles;
+    if($this->isDBLayer($metadata['basename'])){
+      $this->DBconnect($metadata['basename'].'.mbtiles');
+      $res = $this->db->query('SELECT grid FROM grids LIMIT 1');
+      if($res){
+        foreach ($this->config['baseUrls'] as $url) {
+          $grids[] = 'http://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.grid.json';
+        }
+        $metadata['grids'] = $grids;
+      }
+    }
     return $metadata;
   }
 
