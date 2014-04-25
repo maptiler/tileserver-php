@@ -23,7 +23,6 @@ Router::serve(array(
     '/:string/:number/:number/:number.:string' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
     '/tms/:string' => 'Tms:getLayerCapabilities',
-    '/:string/tms/:number/:number/:number.:string' => 'Tms:getTile',
  ));
 
 /**
@@ -88,7 +87,7 @@ class Server {
 //      die;
 //    }
   }
-
+ 
   /**
    * Processing params from router <server>/<layer>/<z>/<x>/<y>.ext
    * @param array $params
@@ -128,13 +127,11 @@ class Server {
    * @return boolean
    */
   public function isDBLayer($layer) {
-    foreach ($this->dbLayer as $DBLayer) {
-      $basename = explode('.', $DBLayer['basename']);
-      if ($basename[0] == $layer) {
-        return TRUE;
-      }
+    if(is_file($layer.'.mbtiles')){
+      return TRUE;
+    }  else {
+      return FALSE;
     }
-    return false;
   }
 
   /**
@@ -143,12 +140,11 @@ class Server {
    * @return boolean
    */
   public function isFileLayer($layer) {
-    foreach ($this->fileLayer as $DBLayer) {
-      if ($DBLayer['basename'] == $layer) {
-        return TRUE;
-      }
+    if(is_dir($layer)){
+      return TRUE;
+    }  else {
+      return FALSE;
     }
-    return false;
   }
 
   /**
@@ -470,7 +466,6 @@ class Json extends Server {
   public function __construct($params) {
     parent::__construct();
     parent::setParams($params);
-    parent::setDatasets();
     if (isset($_GET['callback']) && !empty($_GET['callback'])) {
       $this->callback = $_GET['callback'];
     }
@@ -524,6 +519,7 @@ class Json extends Server {
    * Returns JSON with callback
    */
   public function getJson() {
+    parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
     header("Content-Type:application/javascript charset=utf-8");
     if ($this->callback !== 'grid') {
@@ -537,6 +533,7 @@ class Json extends Server {
    * Returns JSONP with callback
    */
   public function getJsonp() {
+    parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
     header("Content-Type:text/javascript charset=utf-8");
     echo $this->callback . '(' . $this->createJson($this->layer) . ');';
@@ -587,7 +584,6 @@ class Wmts extends Server {
    */
   public function __construct($params) {
     parent::__construct();
-    parent::setDatasets();
     if (isset($params)) {
       parent::setParams($params);
     }
@@ -601,6 +597,7 @@ class Wmts extends Server {
     if($request !== FALSE && $request == 'gettile'){
       $this->getTile();
     }else{
+      parent::setDatasets();
       $this->getCapabilities();
     }
   }
@@ -1114,13 +1111,13 @@ class Tms extends Server {
   public function __construct($params) {
     parent::__construct();
     parent::setParams($params);
-    parent::setDatasets();
   }
 
   /**
    * Returns getCapabilities metadata request
    */
   public function getCapabilities() {
+    parent::setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header("Content-type: application/xml");
     echo'<TileMapService version="1.0.0"><TileMaps>';
@@ -1144,6 +1141,7 @@ class Tms extends Server {
    * Prints metadata about layer
    */
   public function getLayerCapabilities() {
+    parent::setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     foreach ($maps as $map) {
       if (strpos($map['basename'], $this->layer) !== false) {
