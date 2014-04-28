@@ -37,6 +37,28 @@ RewriteEngine on
 #RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [N]
 ## Example: http://www.tileserver.com/grandcanyon/style/tilematrixset/10/192/401.png
 
+## WMTS KVP
+## --------
+## map the /?key=value&... -> /layer/z/x/y.ext KVP getTile queries directly to files
+#
+## format passed as mime-extension, cleaning formats (jpeg->jpg)
+#RewriteCond %{QUERY_STRING} ^(.*)format=image/jpeg(.*)$ [NC]
+#RewriteRule ^(.*)$ $1?%1format=jpg%2 [N]
+#RewriteCond %{QUERY_STRING} ^(.*)format=jpeg(.*)$ [NC]
+#RewriteRule ^(.*)$ $1?%1format=jpg%2 [N]
+#RewriteCond %{QUERY_STRING} ^(.*)format=image/png(.*)$ [NC]
+#RewriteRule ^(.*)$ $1?%1format=png%2 [N]
+#
+## variable order of keys: TODO: sort the same way as mime-extension to fixed order
+#RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*tilematrix=(\d+).*tilerow=(\d+).*tilecol=(\d+).*format=(\w+).*$ [NC]
+#RewriteRule ^ %1/%2/%3/%4.%5 [N]
+#RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*format=(\w+).*tilematrix=(\d+).*tilerow=(\d+).*tilecol=(\d+).*$ [NC]
+#RewriteRule ^ %1/%3/%5/%4.%2 [N]
+#RewriteCond %{QUERY_STRING} ^.*request=gettile.*layer=([\w\d\._-]+).*tilematrix=(\d+).*tilecol=(\d+).*tilerow=(\d+).*format=(\w+).*$ [NC]
+#RewriteRule ^ %1/%2/%4/%3.%5 [N]
+## Example: http://www.tileserver.com/wmts?request=getTile&layer=grandcanyon&tileMatrix=10&tilerow=192&tilecol=401&format=png
+## Example: http://www.tileserver.com/wmts?service=WMTS&request=GetTile&version=1.0.0&layer=ne2geo&style=&format=image/jpeg&TileMatrixSet=WGS84&TileMatrix=1&TileRow=2&TileCol=2
+
 # rewrite .jpeg -> .jpg
 RewriteRule ^(.+).jpeg$ $1.jpg [L]
 
