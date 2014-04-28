@@ -1,7 +1,10 @@
 # tileserver.php integration with Apache via .htaccess
 
 # Restrictions for data crawlers
-#Options -Indexes
+Options -Indexes
+<ifModule mod_negotiation.c>
+ Options -MultiViews
+</ifModule>
 
 # Optional CORS header for cross-domain origin access to all data
 #<ifModule mod_headers.c>
@@ -16,26 +19,23 @@ DirectoryIndex tileserver.php
 RewriteEngine on
 
 #some hostings require RewriteBase e.g. 1&1.com
-#RewriteBase /
-#RewriteBase /server/
-
-#some hostings require -MultiViews e.g. 1&1.com
-#Options -MultiViews
+RewriteBase /
+#RewriteBase /cosi/
  
 # WMTS RESTful
 # ------------
 # The file can be accessed directly:
 # Example: http://www.tileserver.com/grandcanyon/10/192/401.png
 
-## map /wmts/layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrixset,style,..)
-## BTW This is used only by Gaia which ignores the <ResourceURL template="...">
-#RewriteRule ^wmts/([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$4/$3.$5 [N]
-## Example: http://www.tileserver.com/wmts/grandcanyon/style/tilematrixset/10/192/401.png
-#
-## map /layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrix,style,..)
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [N]
-## Example: http://www.tileserver.com/grandcanyon/style/tilematrixset/10/192/401.png
+# map /wmts/layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrixset,style,..)
+# BTW This is used only by Gaia which ignores the <ResourceURL template="...">
+RewriteRule ^wmts/([\w\d\._-]+)/.*?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$4/$3.$5 [N]
+# Example: http://www.tileserver.com/wmts/grandcanyon/style/tilematrixset/10/192/401.png
+
+# map /layer/[ANYTHING]z/x/y.ext -> /layer/z/x/y.ext (WMTS ignoring tilematrix,style,..)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([\w\d\._-]+)/.+?(\d+)/(\d+)/(\d+)\.(\w+)$ $1/$2/$3/$4.$5 [N]
+# Example: http://www.tileserver.com/grandcanyon/style/tilematrixset/10/192/401.png
 
 # rewrite .jpeg -> .jpg
 RewriteRule ^(.+).jpeg$ $1.jpg [L]

@@ -8,7 +8,7 @@
  */
 
 global $config;
-$config['serverTitle'] = 'TileServer-php v0.2';
+$config['serverTitle'] = 'TileServer-php v1';
 //$config['baseUrls'] = ['t0.server.com', 't1.server.com'];
 
 Router::serve(array(
@@ -17,13 +17,16 @@ Router::serve(array(
     '/html' => 'Server:getHtml',
     '/:string.json' => 'Json:getJson',
     '/:string.jsonp' => 'Json:getJsonp',
-    '/:string/:number/:number/:number.grid.json' => 'Json:getUTFGrid',
+    '/:string/:number/:number/:number.:string.json' => 'Json:getUTFGrid',
     '/wmts' => 'Wmts:get',
-    '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:getCapabilities',
+    '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:get',
+    '/wmts/:string/:number/:number/:number.:string' => 'Wmts:getTile',
+    '/wmts/:string/:string/:number/:number/:number.:string' => 'Wmts:getTile',
+    '/wmts/:string/:string/:string/:number/:number/:number.:string' => 'Wmts:getTile',
     '/:string/:number/:number/:number.:string' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
     '/tms/:string' => 'Tms:getLayerCapabilities',
- ));
+));
 
 /**
  * Server base
@@ -31,7 +34,7 @@ Router::serve(array(
 class Server {
 
   /**
-   * Configuration of TileServer [baseUrls, serverTitle, host]
+   * Configuration of TileServer [baseUrls, serverTitle]
    * @var array 
    */
   public $config;
@@ -54,7 +57,7 @@ class Server {
    */
   public $db;
 
-  /** 
+  /**
    * Set config
    */
   public function __construct() {
@@ -72,22 +75,14 @@ class Server {
         $layer = $this->metadataFromMetadataJson($mj);
         array_push($this->fileLayer, $layer);
       }
-    } else {
-      $e = 1;
     }
     if ($mbts) {
       foreach ($mbts as $mbt) {
         $this->dbLayer[] = $this->metadataFromMbtiles($mbt);
       }
-    } else {
-      $e = 1;
     }
-//    if (isset($e)) {
-//      echo 'Server: No JSON or MBtiles file with metadata';
-//      die;
-//    }
   }
- 
+
   /**
    * Processing params from router <server>/<layer>/<z>/<x>/<y>.ext
    * @param array $params
@@ -96,13 +91,14 @@ class Server {
     if (isset($params[1])) {
       $this->layer = $params[1];
     }
-    if (isset($params[2])) {
-      $this->z = $params[2];
-      $this->x = $params[3];
-      $this->y = $params[4];
+    $params = array_reverse($params);
+    if (isset($params[3])) {
+      $this->z = $params[3];
+      $this->x = $params[2];
+      $this->y = $params[1];
     }
-    if (isset($params[5])) {
-      $this->ext = $params[5];
+    if (isset($params[0])) {
+      $this->ext = $params[0];
     }
   }
 
@@ -114,7 +110,7 @@ class Server {
   public function getGlobal($isKey) {
     $get = $_GET;
     foreach ($get as $key => $value) {
-      if(strtolower($isKey) == strtolower($key)){
+      if (strtolower($isKey) == strtolower($key)) {
         return $value;
       }
     }
@@ -127,9 +123,9 @@ class Server {
    * @return boolean
    */
   public function isDBLayer($layer) {
-    if(is_file($layer.'.mbtiles')){
+    if (is_file($layer . '.mbtiles')) {
       return TRUE;
-    }  else {
+    } else {
       return FALSE;
     }
   }
@@ -140,9 +136,9 @@ class Server {
    * @return boolean
    */
   public function isFileLayer($layer) {
-    if(is_dir($layer)){
+    if (is_dir($layer)) {
       return TRUE;
-    }  else {
+    } else {
       return FALSE;
     }
   }
@@ -230,7 +226,7 @@ class Server {
     if (!isset($this->db)) {
       header('Content-type: text/plain');
       echo 'Incorrect tileset name: ' . $tileset;
-      exit;
+      die;
     }
   }
 
@@ -289,7 +285,7 @@ class Server {
         echo $data;
       }
     } elseif ($this->isFileLayer($tileset)) {
-      $name = './' . $tileset . '/' . $z . '/' . $y . '/' . $x . '.' . $ext;
+      $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y . '.' . $ext;
       if ($fp = @fopen($name, 'rb')) {
         header('Content-Type: image/' . $ext);
         header('Content-Length: ' . filesize($name));
@@ -324,20 +320,24 @@ class Server {
    * @param integer $y
    * @param integer $x
    */
-  public function getUTFGrid($tileset, $z, $y, $x) {
+  public function getUTFGrid($tileset, $z, $y, $x, $flip = TRUE) {
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == TRUE) {
         header('HTTP/1.1 304 Not Modified');
       }
-      $this->DBconnect($tileset . '.mbtiles');
+      if ($flip) {
+        $y = pow(2, $z) - 1 - $y;
+      }
       try {
+        $this->DBconnect($tileset . '.mbtiles');
         $result = $this->db->query('SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND tile_row = ' . $y . ' AND zoom_level = ' . $z);
-        $data = $result->fetchColumn();
-        if (!isset($data) || $data === FALSE) {
+        if (!isset($result) || $result === FALSE) {
           header('Access-Control-Allow-Origin: *');
-          echo 'grid({});';
+          echo 'grid({error});';
           die;
         } else {
+          $data = $result->fetchColumn();
+
           $grid = gzuncompress($data);
           $grid = substr(trim($grid), 0, -1);
 
@@ -375,6 +375,10 @@ class Server {
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title></head><body>';
+    echo '<h1>' . $this->config['serverTitle'] . '</h1>';
+    echo 'TileJSON service: <a href="' . $this->config['baseUrls'][0] . '/index.json">' . $this->config['baseUrls'][0] . '/index.json</a><br>';
+    echo 'WMTS service: <a href="' . $this->config['baseUrls'][0] . '/wmts">' . $this->config['baseUrls'][0] . '/wmts</a><br>';
+    echo 'TMS service: <a href="' . $this->config['baseUrls'][0] . '/tms">' . $this->config['baseUrls'][0] . '/tms</a>';
     foreach ($maps as $map) {
       $extend = '[';
       foreach ($map['bounds'] as $ext) {
@@ -386,8 +390,11 @@ class Server {
       } else {
         echo '<p>Available file tileset: ' . $map['basename'] . '<br>';
       }
+      echo 'Metadata: <a href="' . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json">'
+      . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json</a><br>';
       echo 'Bounds: ' . $extend . '</p>';
     }
+    echo '<p>Copyright (C) 2014 - Klokan Technologies GmbH</p>';
     echo '</body></html>';
   }
 
@@ -401,7 +408,7 @@ class Server {
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
     echo '<link rel="stylesheet" type="text/css" href="//tileserver.com/v1/index.css" />
           <script src="//tileserver.com/v1/index.js"></script><body>
-          <script>tileserver(null,"http://' . $this->config['baseUrls'][0] . '/tms/","http://' . $this->config['baseUrls'][0] . '/wmts/");</script>
+          <script>tileserver(null,"http://' . $this->config['baseUrls'][0] . '/tms","http://' . $this->config['baseUrls'][0] . '/wmts");</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
           <p>The mapping data are available as OpenGIS Web Map Tiling Service (OGC WMTS), OSGEO Tile Map Service (TMS), and popular XYZ urls described with TileJSON metadata.</p>';
@@ -484,10 +491,10 @@ class Json extends Server {
       $tiles[] = 'http://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
     }
     $metadata['tiles'] = $tiles;
-    if($this->isDBLayer($metadata['basename'])){
-      $this->DBconnect($metadata['basename'].'.mbtiles');
+    if ($this->isDBLayer($metadata['basename'])) {
+      $this->DBconnect($metadata['basename'] . '.mbtiles');
       $res = $this->db->query('SELECT grid FROM grids LIMIT 1');
-      if($res){
+      if ($res) {
         foreach ($this->config['baseUrls'] as $url) {
           $grids[] = 'http://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.grid.json';
         }
@@ -602,11 +609,11 @@ class Wmts extends Server {
   /**
    * Tests request from url and call method
    */
-  public function get(){
+  public function get() {
     $request = $this->getGlobal('Request');
-    if($request !== FALSE && $request == 'gettile'){
+    if ($request !== FALSE && $request == 'gettile') {
       $this->getTile();
-    }else{
+    } else {
       parent::setDatasets();
       $this->getCapabilities();
     }
@@ -617,11 +624,11 @@ class Wmts extends Server {
    */
   public function getCapabilities() {
     header("Content-type: application/xml");
-    echo '<?xml version="1.0" encoding="UTF-8" ?>';
-    echo '<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
+    echo '<?xml version="1.0" encoding="UTF-8" ?>
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
   <!-- Service Identification -->
   <ows:ServiceIdentification>
-    <ows:Title>' . $this->config['serverTitle'] . '</ows:Title>
+    <ows:Title>tileserverphp</ows:Title>
     <ows:ServiceType>OGC WMTS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
   </ows:ServiceIdentification>
@@ -651,7 +658,7 @@ class Wmts extends Server {
     <ows:Operation name="GetTile">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts?">
+          <ows:Get xlink:href="http://' . $this->config['baseUrls'][0] . '/wmts/">
             <ows:Constraint name="GetEncoding">
               <ows:AllowedValues>
                 <ows:Value>RESTful</ows:Value>
@@ -691,10 +698,11 @@ class Wmts extends Server {
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
       }
-      echo'<Layer>
+      echo'
+    <Layer>
       <ows:Title>' . $title . '</ows:Title>
-      <ows:Identifier>' . $basename . '</ows:Identifier>';
-      echo '<ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
+      <ows:Identifier>' . $basename . '</ows:Identifier>
+      <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
         <ows:LowerCorner>' . $bounds[0] . ' ' . $bounds[1] . '</ows:LowerCorner>
         <ows:UpperCorner>' . $bounds[2] . ' ' . $bounds[3] . '</ows:UpperCorner>
       </ows:WGS84BoundingBox>
@@ -706,12 +714,13 @@ class Wmts extends Server {
         <TileMatrixSet>' . $tileMatrixSet . '</TileMatrixSet>
       </TileMatrixSetLink>
       <ResourceURL format="' . $mime . '" resourceType="tile" template="http://'
-      . $this->config['baseUrls'][0] . '/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
+      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
     </Layer>';
     }
-    echo '<TileMatrixSet>
+    echo '
+    <TileMatrixSet>
       <ows:Title>GoogleMapsCompatible</ows:Title>
-      <ows:Abstract>the wellknown "GoogleMapsCompatible" tile matrix set defined by OGC WMTS specification</ows:Abstract>
+      <ows:Abstract>the wellknown \'GoogleMapsCompatible\' tile matrix set defined by OGC WMTS specification</ows:Abstract>
       <ows:Identifier>GoogleMapsCompatible</ows:Identifier>
       <ows:SupportedCRS>urn:ogc:def:crs:EPSG:6.18:3:3857</ows:SupportedCRS>
       <WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleMapsCompatible</WellKnownScaleSet>
@@ -1338,7 +1347,7 @@ class Router {
   /**
    * @param array $routes
    */
-  public static function serve($routes) {    
+  public static function serve($routes) {
     $request_method = strtolower($_SERVER['REQUEST_METHOD']);
     $path_info = '/';
     if (!empty($_SERVER['PATH_INFO'])) {
@@ -1352,7 +1361,7 @@ class Router {
     }
     $discovered_handler = null;
     $regex_matches = array();
-    
+
     if ($routes) {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
@@ -1363,8 +1372,8 @@ class Router {
       foreach ($routes as $pattern => $handler_name) {
         $pattern = strtr($pattern, $tokens);
         if (preg_match('#/?' . $pattern . '/?$#', $path_info, $matches)) {
-          if(!isset($config['baseUrls'])){
-            $config['baseUrls'][0] = $_SERVER['HTTP_HOST'].preg_replace('#/?'.$pattern.'/?$#', '', $path_info);
+          if (!isset($config['baseUrls'])) {
+            $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . preg_replace('#/?' . $pattern . '/?$#', '', $path_info);
           }
           $discovered_handler = $handler_name;
           $regex_matches = $matches;
@@ -1387,7 +1396,8 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
-      echo 'Router: No route'; die;
+      echo 'Router: No route';
+      die;
       //$handler_instance = new Server;
       //$handler_instance->getHtml();
     }
