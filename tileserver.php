@@ -238,7 +238,7 @@ class Server {
   public function isModified($filename) {
     $filename = $filename . '.mbtiles';
     $lastModifiedTime = filemtime($filename);
-    $eTag = md5_file($filename);
+    $eTag = md5($lastModifiedTime);
     header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModifiedTime) . " GMT");
     header("Etag:" . $eTag);
     if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime ||
@@ -261,6 +261,7 @@ class Server {
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == TRUE) {
         header('HTTP/1.1 304 Not Modified');
+        die;
       }
       $this->DBconnect($tileset . '.mbtiles');
       $z = floatval($z);
