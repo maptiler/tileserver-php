@@ -517,7 +517,11 @@ class Json extends Server {
       foreach ($maps as $map) {
         $output = $output . json_encode($this->metadataTileJson($map)) . ',';
       }
-      $output = substr_replace($output, ']', -1);
+      if(strlen($output) > 1){
+        $output = substr_replace($output, ']', -1);
+      }else{
+        $output = $output.']';
+      }
     } else {
       foreach ($maps as $map) {
         if (strpos($map['basename'], $basename) !== false) {
