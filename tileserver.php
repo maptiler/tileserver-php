@@ -409,7 +409,7 @@ class Server {
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
     echo '<link rel="stylesheet" type="text/css" href="//tileserver.com/v1/index.css" />
           <script src="//tileserver.com/v1/index.js"></script><body>
-          <script>tileserver({tms:"http://' . $this->config['baseUrls'][0] . '/tms", wmts:"http://' . $this->config['baseUrls'][0] . '/wmts"});</script>
+          <script>tileserver({index:"http://' . $this->config['baseUrls'][0] . '/index.json", tilejson:"http://' . $this->config['baseUrls'][0] . '/%n.json", tms:"http://' . $this->config['baseUrls'][0] . '/tms", wmts:"http://' . $this->config['baseUrls'][0] . '/wmts"});</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
           <p>The mapping data are available as OpenGIS Web Map Tiling Service (OGC WMTS), OSGEO Tile Map Service (TMS), and popular XYZ urls described with TileJSON metadata.</p>';
@@ -517,10 +517,10 @@ class Json extends Server {
       foreach ($maps as $map) {
         $output = $output . json_encode($this->metadataTileJson($map)) . ',';
       }
-      if(strlen($output) > 1){
+      if (strlen($output) > 1) {
         $output = substr_replace($output, ']', -1);
-      }else{
-        $output = $output.']';
+      } else {
+        $output = $output . ']';
       }
     } else {
       foreach ($maps as $map) {
@@ -1405,7 +1405,7 @@ class Router {
       die;
       //$handler_instance = new Server;
       //$handler_instance->getHtml();
+      }
     }
-  }
 
 }
