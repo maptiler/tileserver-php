@@ -242,7 +242,7 @@ class Server {
     header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModifiedTime) . " GMT");
     header("Etag:" . $eTag);
     if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime ||
-            trim($_SERVER['HTTP_IF_NONE_MATCH']) == $eTag) {
+            @trim($_SERVER['HTTP_IF_NONE_MATCH']) == $eTag) {
       return TRUE;
     } else {
       return FALSE;
@@ -350,7 +350,7 @@ class Server {
           }
           $grid = rtrim($grid, ',') . '}}';
           header('Access-Control-Allow-Origin: *');
-          
+
           if (isset($_GET['callback']) && !empty($_GET['callback'])) {
             header("Content-Type:text/javascript charset=utf-8");
             echo $_GET['callback'] . '(' . $grid . ');';
@@ -546,9 +546,9 @@ class Json extends Server {
     header('Access-Control-Allow-Origin: *');
     header("Content-Type:application/javascript charset=utf-8");
     if ($this->callback !== 'grid') {
-      echo $this->callback . '(' . $this->createJson($this->layer) . ');';
+      echo $this->callback . '(' . $this->createJson($this->layer) . ');'; die;
     } else {
-      echo $this->createJson($this->layer);
+      echo $this->createJson($this->layer); die;
     }
   }
 
@@ -1360,7 +1360,7 @@ class Router {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && $_SERVER['ORIG_PATH_INFO'] !== '/tileserver.php') {
       $path_info = $_SERVER['ORIG_PATH_INFO'];
-     } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'],'/tileserver.php') !== false) {
+    } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/tileserver.php') !== false) {
       $path_info = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
       $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
     } else {
@@ -1405,8 +1405,15 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
-      if(!isset($config['baseUrls'][0])){
-      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
+      if (!isset($config['baseUrls'][0])) {
+        $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
+      }
+      if (strpos($_SERVER['REQUEST_URI'], '=') != FALSE) {
+        $kvp = explode('=', $_SERVER['REQUEST_URI']);
+        $_GET['callback'] = $kvp[1];
+        $params[0] = 'index';
+        $handler_instance = new Json($params);
+        $handler_instance->getJson();
       }
       $handler_instance = new Server;
       $handler_instance->getHtml();
