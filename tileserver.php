@@ -334,7 +334,7 @@ class Server {
         $result = $this->db->query('SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND tile_row = ' . $y . ' AND zoom_level = ' . $z);
         if (!isset($result) || $result === FALSE) {
           header('Access-Control-Allow-Origin: *');
-          echo 'grid({error});';
+          echo '{}';
           die;
         } else {
           $data = $result->fetchColumn();
@@ -350,12 +350,13 @@ class Server {
           }
           $grid = rtrim($grid, ',') . '}}';
           header('Access-Control-Allow-Origin: *');
-          if (isset($_GET['callback'])) {
+          
+          if (isset($_GET['callback']) && !empty($_GET['callback'])) {
             header("Content-Type:text/javascript charset=utf-8");
             echo $_GET['callback'] . '(' . $grid . ');';
           } else {
             header("Content-Type:text/javascript; charset=utf-8");
-            echo 'grid(' . $grid . ');';
+            echo $grid;
           }
         }
       } catch (PDOException $e) {
