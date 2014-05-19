@@ -1359,6 +1359,9 @@ class Router {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && $_SERVER['ORIG_PATH_INFO'] !== '/tileserver.php') {
       $path_info = $_SERVER['ORIG_PATH_INFO'];
+     } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'],'/tileserver.php') !== false) {
+      $path_info = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
     } else {
       if (!empty($_SERVER['REQUEST_URI'])) {
         $path_info = (strpos($_SERVER['REQUEST_URI'], '?') > 0) ? strstr($_SERVER['REQUEST_URI'], '?', true) : $_SERVER['REQUEST_URI'];
@@ -1401,11 +1404,12 @@ class Router {
         $handler_instance = $discovered_handler();
       }
     } else {
-      echo 'Router: No route';
-      die;
-      //$handler_instance = new Server;
-      //$handler_instance->getHtml();
+      if(!isset($config['baseUrls'][0])){
+      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
       }
+      $handler_instance = new Server;
+      $handler_instance->getHtml();
     }
+  }
 
 }
