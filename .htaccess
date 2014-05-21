@@ -1,27 +1,27 @@
 # tileserver.php integration with Apache via .htaccess
 
-# Restrictions for data crawlers
+#check htaccess functionality
+DirectoryIndex tileserver.php
+
+RewriteEngine on
+
+# Option: some hostings require RewriteBase e.g. 1&1.com
+#RewriteBase /
+#RewriteBase /directory/
+
+# Option: some hostings require -MultiViews e.g. 1&1.com
+#Options -MultiViews
+ 
+# Option: Restrictions for data crawlers
 #Options -Indexes
 
-# Optional CORS header for cross-domain origin access to all data
+# Option: CORS header for cross-domain origin access to all data
 #<ifModule mod_headers.c>
 #  Header set Access-Control-Allow-Origin *
 #</ifModule>
 
 # Mapping of the WMTS standardized URLs to real files and XML capabilities to tileserver.php
 
-#check htaccess functionality
-DirectoryIndex tileserver.php
-
-RewriteEngine on
-
-#some hostings require RewriteBase e.g. 1&1.com
-#RewriteBase /
-#RewriteBase /server/
-
-#some hostings require -MultiViews e.g. 1&1.com
-#Options -MultiViews
- 
 # WMTS RESTful
 # ------------
 # The file can be accessed directly:
