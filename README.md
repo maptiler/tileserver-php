@@ -13,9 +13,9 @@ It is the easiest and cheapest way how to serve zoomable maps in a
 standardized way - practically from any ordinary web hosting.
 
 It is easy to install - just copy the project files to a PHP-enabled
-directory along with your map data containing metadata.json file.
+directory along with your map data.
 
-It comes with an online interface showing the list of the maps and step-by-step guides for desktop GIS software:
+It comes with an online interface showing the list of the maps and step-by-step guides for online mapping libraries (Google Maps API, Leaflet, OpenLayers, OL3, MapBox JS, ArcGIS JS) and various desktop GIS software:
 
 ![tileserver-screenshot](https://f.cloud.github.com/assets/59284/1041807/a040160c-0fdb-11e3-8941-ab367b2a648d.png)
 
@@ -28,6 +28,10 @@ Tiles are served directly by Apache with mod_rewrite rules as static files
 and therefore are very fast and with correct HTTP caching headers.
 Only XML metadata are delivered via PHP.
 MBTiles are served via PHP, unless they are unpacked with mbutil.
+
+[MapTiler](http://www.maptiler.com/) can render GeoTIFF, ECW, MrSID, GeoPDF into compatible map tiles. JPEG, PNG, GIF and TIFF with scanned maps or images without geolocation can be turned into standard map layers with the visual georeferencing functionality (http://youtu.be/eJxdCe9CNYg).
+
+[![MapTiler - mapping tiles](https://cloud.githubusercontent.com/assets/59284/3037911/583d7810-e0c6-11e3-877c-6a7747b80dd3.jpg)](http://www.maptiler.com/)
 
 Requirements:
 -------------
@@ -212,9 +216,10 @@ Credits / Contributors
 Project developed initially by Klokan Technologies GmbH, Switzerland in
 cooperation with National Oceanic and Atmospheric Administration - NOAA, USA.
 
-Petr Pridal - Klokan Technologies GmbH <petr.pridal@klokantech.com>
-Jason Woolard - NOAA <jason.woolard@noaa.gov>
-Jon Sellars - NOAA <jon.sellars@noaa.gov>
+- Petr Pridal - Klokan Technologies GmbH <petr.pridal@klokantech.com>
+- Jason Woolard - NOAA <jason.woolard@noaa.gov>
+- Jon Sellars - NOAA <jon.sellars@noaa.gov>
+- Dalibor Janak - Klokan Technologies GmbH <dalibor.janak@klokantech.com>
 
 Tested WMTS/TMS clients
 -----------------------
@@ -223,13 +228,16 @@ Tested WMTS/TMS clients
   http://www.qgis.org/
 - ESRI ArcGIS Desktop 10.1+ - native WMTS implementation supported
   http://www.esri.com/software/arcgis/arcgis-for-desktop
+- ESRI ArcGIS Online - loading via WMTS protocol
+  http://www.arcgis.com/
 - ArcBruTiles plugin for ArcGIS 9.3+ - via TMS endpoint
   http://arcbrutile.codeplex.com/
 - OpenLayers WMTS Layer - including parsing GetCapabilities
   http://www.openlayers.org/
 - GAIA - native WMTS (issues with 3857 to be fixed)
   http://www.thecarbonproject.com/gaia.php
-- MapBox.js - the loading of maps via TileJSON
+- MapBox.js - the loading of maps via TileJSON, interaction layer supported
+  https://www.mapbox.com/mapbox.js
 
 BSD License
 -----------
