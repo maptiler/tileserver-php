@@ -4,6 +4,8 @@ TileServer PHP - OGC Web Map Tiling Server (WMTS)
 This server distributes maps to desktop, web, and mobile applications from
 a standard Apache+PHP web hosting.
 
+Try a live demo at: http://tileserver.maptiler.com/
+
 It is a free and open-source project implementing OGC WMTS standard for
 pre-rendered map tiles made with [MapTiler](http://www.maptiler.com/), GDAL2Tiles,
 or available as MBTiles files.
@@ -17,8 +19,6 @@ directory along with your map data.
 It comes with an online interface showing the list of the maps and step-by-step guides for online mapping libraries (Google Maps API, Leaflet, OpenLayers, OL3, MapBox JS, ArcGIS JS) and various desktop GIS software:
 
 ![tileserver-screenshot](https://f.cloud.github.com/assets/59284/1041807/a040160c-0fdb-11e3-8941-ab367b2a648d.png)
-
-Try a live demo at: http://tileserver.maptiler.com/
 
 This project is developed in PHP, not because it is the best language for
 development of web applications, but because it maximally simplify the
