@@ -28,7 +28,7 @@ web hostings.
 Tiles are served directly by Apache with mod_rewrite rules as static files
 and therefore are very fast and with correct HTTP caching headers.
 Only XML metadata are delivered via PHP.
-MBTiles are served via PHP, unless they are unpacked with mbutil.
+MBTiles are served via PHP, and are therfore slower, unless they are unpacked with mbutil.
 
 [MapTiler](http://www.maptiler.com/) can render GeoTIFF, ECW, MrSID, GeoPDF into compatible map tiles. JPEG, PNG, GIF and TIFF with scanned maps or images without geolocation can be turned into standard map layers with the visual georeferencing functionality (http://youtu.be/eJxdCe9CNYg).
 
@@ -45,8 +45,7 @@ Requirements:
 Installation:
 -------------
 
-Download the project files as a zip archive or source code from GitHub and
-unpack it into a web-hosting of your choice.
+Download the project files as a [zip archive](https://github.com/klokantech/tileserver-php/archive/master.zip) or source code from GitHub and unpack it into a web-hosting of your choice.
 
 If you access the web address relevant to the installation directory, 
 the TileServer.php Server should display you a welcome message and further
