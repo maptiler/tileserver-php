@@ -56,14 +56,12 @@ tiles rendered with [MapTiler](http://www.maptiler.com/).
 
 Tiles produced by open-source GDAL2Tiles or MapTiler and tiles in .mbtiles
 files can be easily converted to required structure (XYZ with top-left origin
-and metadata.json file).
-
-The OpenSource utility mbutil (https://github.com/mapbox/mbutil) produces
+and metadata.json file). The open-source utility [mbutil](https://github.com/mapbox/mbutil) produces
 exactly the required format.
 
 Direct reading of .mbtiles files is supported, but with decreased performance
-compared to the static files in a directory. Therefore the data management,
-especially upload over FTP or similar protocols, is easier.
+compared to the static files in a directory. The advantage is easier data management,
+especially upload over FTP or similar protocols.
 
 Supported protocols:
 --------------------
