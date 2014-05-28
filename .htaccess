@@ -20,6 +20,12 @@ RewriteEngine on
 #  Header set Access-Control-Allow-Origin *
 #</ifModule>
 
+# Block direct downloading of .mbtiles
+<FilesMatch "\.mbtiles$">
+ Order Allow,Deny
+ Deny from all
+</FilesMatch>
+
 # Mapping of the WMTS standardized URLs to real files and XML capabilities to tileserver.php
 
 # WMTS RESTful
