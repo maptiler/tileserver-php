@@ -111,15 +111,11 @@ Supported protocols:
   Exposed at http://[...]/layer/z/x/y.grid.json
   
 
-To use the OGC WMTS services point your client (desktop or web) to the URL
+To use the OGC WMTS standard point your client (desktop or web) to the URL
 of 'directory' where you installed tileserver.php project with suffix "wmts".
-
 For example: http://www.example.com/directory/wmts
- 
-You can also install the project into a root directory of a virtual server:
-Then the address is: http://www.example.com/wmts
 
-Similarly for another end points.
+If you have installed the project into a root directory of a domain, then the address is: http://www.example.com/wmts
 
 The supported WMTS requests includes:
 
@@ -133,7 +129,7 @@ GetTile RESTful/KVP:
    http://[...]/layer/[ANYTHING-OPTIONAL][z]/[x]/[y].[ext]
    http://[...]?service=wmts&request=getTile&layer=[layer]&tilematrix=[z]&tilerow=[y]&tilecol=[y]&format=[ext]
    
-Another example requests are mentioned in the .htaccess.
+Other example requests are mentioned in the .htaccess.
 
 Performance from the web clients
 --------------------------------
@@ -180,10 +176,10 @@ Password protection
 HTTP Simple Authentication can be easily added to the server.
 Edit the .htaccess and add these lines:
 
-AuthUserFile /full/path/to/.htpasswd
-AuthType Basic
-AuthName "Secure WMTS"
-Require valid-user
+    AuthUserFile /full/path/to/.htpasswd
+    AuthType Basic
+    AuthName "Secure WMTS"
+    Require valid-user
 
 Create a file called .htpasswd with user:password format.
 You can use a command-line utility:
