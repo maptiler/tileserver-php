@@ -167,7 +167,7 @@ class Server {
 
     $resultdata = $result->fetchAll();
     foreach ($resultdata as $r) {
-      $metadata[$r['name']] = $r['value'];
+      $metadata[$r['name']] = addslashes($r['value']);
     }
     $metadata = $this->metadataValidation($metadata);
     $mbt = explode('.', $mbt);
@@ -535,7 +535,7 @@ class Json extends Server {
       echo 'TileServer: unknown map ' . $basename;
       die;
     }
-    return $output;
+    return stripslashes($output);
   }
 
   /**
