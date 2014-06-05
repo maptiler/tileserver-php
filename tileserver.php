@@ -374,14 +374,15 @@ class Server {
    * Returns server info
    */
   public function getInfo() {
+//    echo $this->config['baseUrls'][0];die;
     $this->setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title></head><body>';
     echo '<h1>' . $this->config['serverTitle'] . '</h1>';
-    echo 'TileJSON service: <a href="' . $this->config['baseUrls'][0] . '/index.json">' . $this->config['baseUrls'][0] . '/index.json</a><br>';
-    echo 'WMTS service: <a href="' . $this->config['baseUrls'][0] . '/wmts">' . $this->config['baseUrls'][0] . '/wmts</a><br>';
-    echo 'TMS service: <a href="' . $this->config['baseUrls'][0] . '/tms">' . $this->config['baseUrls'][0] . '/tms</a>';
+    echo 'TileJSON service: <a href="//' . $this->config['baseUrls'][0] . '/index.json">' . $this->config['baseUrls'][0] . '/index.json</a><br>';
+    echo 'WMTS service: <a href="//' . $this->config['baseUrls'][0] . '/wmts">' . $this->config['baseUrls'][0] . '/wmts</a><br>';
+    echo 'TMS service: <a href="//' . $this->config['baseUrls'][0] . '/tms">' . $this->config['baseUrls'][0] . '/tms</a>';
     foreach ($maps as $map) {
       $extend = '[';
       foreach ($map['bounds'] as $ext) {
@@ -393,7 +394,7 @@ class Server {
       } else {
         echo '<p>Available file tileset: ' . $map['basename'] . '<br>';
       }
-      echo 'Metadata: <a href="' . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json">'
+      echo 'Metadata: <a href="//' . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json">'
       . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json</a><br>';
       echo 'Bounds: ' . $extend . '</p>';
     }
