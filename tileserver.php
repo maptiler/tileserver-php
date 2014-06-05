@@ -167,7 +167,8 @@ class Server {
 
     $resultdata = $result->fetchAll();
     foreach ($resultdata as $r) {
-      $metadata[$r['name']] = addslashes($r['value']);
+      $value = preg_replace('/(\\n)+/','',$r['value']); 
+      $metadata[$r['name']] = addslashes($value);
     }
     $metadata = $this->metadataValidation($metadata);
     $mbt = explode('.', $mbt);
