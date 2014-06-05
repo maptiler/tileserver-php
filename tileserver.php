@@ -258,7 +258,7 @@ class Server {
    * @param integer $x
    * @param string $ext
    */
-  public function getTile($tileset, $z, $y, $x, $ext) {
+  public function renderTile($tileset, $z, $y, $x, $ext) {
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == TRUE) {
         header('HTTP/1.1 304 Not Modified');
@@ -322,7 +322,7 @@ class Server {
    * @param integer $y
    * @param integer $x
    */
-  public function getUTFGrid($tileset, $z, $y, $x, $flip = TRUE) {
+  public function renderUTFGrid($tileset, $z, $y, $x, $flip = TRUE) {
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == TRUE) {
         header('HTTP/1.1 304 Not Modified');
@@ -567,7 +567,7 @@ class Json extends Server {
    * Returns UTFGrid in JSON format
    */
   public function getUTFGrid() {
-    parent::getUTFGrid($this->layer, $this->z, $this->y, $this->x);
+    parent::renderUTFGrid($this->layer, $this->z, $this->y, $this->x);
   }
 
 }
@@ -1092,9 +1092,9 @@ class Wmts extends Server {
       } else {
         $format = $this->getGlobal('Format');
       }
-      parent::getTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format);
+      parent::renderTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format);
     } else {
-      parent::getTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
+      parent::renderTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
     }
   }
 
@@ -1213,7 +1213,7 @@ class Tms extends Server {
    * Process getTile request
    */
   public function getTile() {
-    parent::getTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
+    parent::renderTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
   }
 
 }
