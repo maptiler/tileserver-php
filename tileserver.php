@@ -71,13 +71,13 @@ class Server {
     $mjs = glob('*/metadata.json');
     $mbts = glob('*.mbtiles');
     if ($mjs) {
-      foreach ($mjs as $mj) {
+      foreach (array_filter($mjs, 'is_readable') as $mj) {
         $layer = $this->metadataFromMetadataJson($mj);
         array_push($this->fileLayer, $layer);
       }
     }
     if ($mbts) {
-      foreach ($mbts as $mbt) {
+      foreach (array_filter($mbts, 'is_readable') as $mbt) {
         $this->dbLayer[] = $this->metadataFromMbtiles($mbt);
       }
     }
