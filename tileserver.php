@@ -261,6 +261,7 @@ class Server {
   public function renderTile($tileset, $z, $y, $x, $ext) {
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == TRUE) {
+        header('Access-Control-Allow-Origin: *');
         header('HTTP/1.1 304 Not Modified');
         die;
       }
@@ -283,12 +284,14 @@ class Server {
         if ($format == 'jpg') {
           $format = 'jpeg';
         }
+        header('Access-Control-Allow-Origin: *');
         header('Content-type: image/' . $format);
         echo $data;
       }
     } elseif ($this->isFileLayer($tileset)) {
       $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y . '.' . $ext;
       if ($fp = @fopen($name, 'rb')) {
+        header('Access-Control-Allow-Origin: *');
         header('Content-Type: image/' . $ext);
         header('Content-Length: ' . filesize($name));
         fpassthru($fp);
@@ -310,6 +313,7 @@ class Server {
     imagesavealpha($png, true);
     $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
     imagefill($png, 0, 0, $trans_colour);
+    header('Access-Control-Allow-Origin: *');
     header('Content-type: image/png');
     imagepng($png);
     die;
