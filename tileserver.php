@@ -170,10 +170,26 @@ class Server {
       $value = preg_replace('/(\\n)+/','',$r['value']); 
       $metadata[$r['name']] = addslashes($value);
     }
+    // autodetect bounds
+    if (!array_key_exists('bounds', $metadata)) {
+      $result = $this->db->query('select min(tile_column) as w, max(tile_column) as e, min(tile_row) as s, max(tile_row) as n from tiles where zoom_level='.$metadata['maxzoom']);
+      $resultdata = $result->fetchAll();
+      $w = -180 + 360 * ($resultdata[0]['w'] / pow(2,$metadata['maxzoom']));
+      $e = -180 + 360 * ((1+$resultdata[0]['e']) / pow(2,$metadata['maxzoom']));
+      $n = $this->row2lat($resultdata[0]['n'], $metadata['maxzoom']);
+      $s = $this->row2lat($resultdata[0]['s']-1, $metadata['maxzoom']);
+      $metadata['bounds'] = "$w,$s,$e,$n";
+    }
     $metadata = $this->metadataValidation($metadata);
     $mbt = explode('.', $mbt);
     $metadata['basename'] = $mbt[0];
     return $metadata;
+  }
+
+  // convert row number to latitude of the top of the row
+  public function row2lat($r, $zoom) {
+    $y = $r / pow(2,$zoom-1) - 1;
+    return rad2deg(2.0 * atan(exp(3.191459196*$y)) - 1.57079632679489661922);
   }
 
   /**
