@@ -1414,7 +1414,7 @@ class Router {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
-          ':alpha' => '([a-zA-Z0-9-_]+)'
+          ':alpha' => '([a-zA-Z0-9-_@]+)'
       );
       global $config;
       foreach ($routes as $pattern => $handler_name) {
