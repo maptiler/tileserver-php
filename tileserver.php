@@ -170,6 +170,25 @@ class Server {
       $value = preg_replace('/(\\n)+/','',$r['value']); 
       $metadata[$r['name']] = addslashes($value);
     }
+    if (!array_key_exists('minzoom', $metadata)
+    || !array_key_exists('maxzoom', $metadata)
+    ) {
+      // autodetect minzoom and maxzoom
+      $result = $this->db->query('select min(zoom_level) as min, max(zoom_level) as max from tiles');
+      $resultdata = $result->fetchAll();
+      if (!array_key_exists('minzoom', $metadata))
+        $metadata['minzoom'] = $resultdata[0]['min'];
+      if (!array_key_exists('maxzoom', $metadata))
+        $metadata['maxzoom'] = $resultdata[0]['max'];
+    }
+    // autodetect format using JPEG magic number FFD8
+    if (!array_key_exists('format', $metadata)) {
+      $result = $this->db->query('select hex(substr(tile_data,1,2)) as magic from tiles limit 1');
+      $resultdata = $result->fetchAll();
+      $metadata['format'] = ($resultdata[0]['magic'] == 'FFD8')
+        ? 'jpg'
+        : 'png';
+    }
     $metadata = $this->metadataValidation($metadata);
     $mbt = explode('.', $mbt);
     $metadata['basename'] = $mbt[0];
@@ -191,8 +210,8 @@ class Server {
     if (!array_key_exists('profile', $metadata)) {
       $metadata['profile'] = 'mercator';
     }
-// TODO: detect format, minzoom, maxzoom, thumb
-// scandir() for directory / SQL for mbtiles
+// TODO: detect format, minzoom, maxzoom, thumb / scandir() for directory
+// TODO: detect thumb / SQL for mbtiles
     if (array_key_exists('minzoom', $metadata))
       $metadata['minzoom'] = intval($metadata['minzoom']);
     else
@@ -205,7 +224,7 @@ class Server {
       $metadata['format'] = 'png';
     }
     /*
-      if (!array_key_exists('thumb', $metadata )) {
+      if (!array_key_exists('profile', $metadata )) {
       $metadata['profile'] = 'mercator';
       }
      */
