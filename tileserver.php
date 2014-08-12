@@ -758,7 +758,7 @@ class Wmts extends Server {
       <TileMatrixSetLink>
         <TileMatrixSet>' . $tileMatrixSet . '</TileMatrixSet>
       </TileMatrixSetLink>
-      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $config['protocol'] . '://'
+      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $this->config['protocol'] . '://'
       . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
     </Layer>';
     }
