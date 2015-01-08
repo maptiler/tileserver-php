@@ -236,7 +236,7 @@ Tested WMTS/TMS clients
 BSD License
 -----------
 
-Copyright (C) 2012 Klokan Technologies GmbH
+Copyright (C) 2015 Klokan Technologies GmbH (http://www.klokantech.com/)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
