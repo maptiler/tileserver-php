@@ -12,4 +12,4 @@ fi
 echo
 echo "Apache logs:"
 echo
-/usr/sbin/apache2ctl -e info -D FOREGROUND
+exec /usr/sbin/apache2ctl -e info -D FOREGROUND
