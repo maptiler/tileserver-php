@@ -4,6 +4,7 @@ RUN apt-get update -y && apt-get install -qq -y \
   apache2 \
   php5 \
   php5-sqlite \
+  php5-gd \
   unzip
 
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
