@@ -321,8 +321,13 @@ class Server {
         if ($format == 'jpg') {
           $format = 'jpeg';
         }
+        if ($format == 'pbf') {
+          header('Content-type: application/x-protobuf');
+          header('Content-Encoding:gzip');
+        } else {
+          header('Content-type: image/' . $format);
+        }
         header('Access-Control-Allow-Origin: *');
-        header('Content-type: image/' . $format);
         echo $data;
       }
     } elseif ($this->isFileLayer($tileset)) {
@@ -339,10 +344,17 @@ class Server {
         if(!isset($meta->scale)){
           $meta->scale = 1;
         }
+        if ($ext == 'pbf') {
+          header('HTTP/1.1 404 Not Found');
+          header('Content-Type: application/json; charset=utf-8');
+          echo '{"message":"Tile does not exist"}';
+          die;
+        }
         $this->getCleanTile($meta->scale);
       }
     } else {
-      echo 'Serverr: Unknown or not specified dataset "'.$tileset.'"';
+      header('HTTP/1.1 404 Not Found');
+      echo 'Server: Unknown or not specified dataset "'.$tileset.'"';
       die;
     }
   }
@@ -553,6 +565,13 @@ class Json extends Server {
         $metadata['grids'] = $grids;
       }
     }
+    if (array_key_exists('json', $metadata)) {
+      $mjson = json_decode(stripslashes($metadata['json']));
+      foreach ($mjson as $key => $value) {
+        $metadata[$key] = $value;
+      }
+      unset($metadata['json']);
+    }
     return $metadata;
   }
 
@@ -594,7 +613,7 @@ class Json extends Server {
   public function getJson() {
     parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
-    header("Content-Type:application/javascript charset=utf-8");
+    header("Content-Type: application/json; charset=utf-8");
     if ($this->callback !== 'grid') {
       echo $this->callback . '(' . $this->createJson($this->layer) . ');'; die;
     } else {
@@ -608,7 +627,7 @@ class Json extends Server {
   public function getJsonp() {
     parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
-    header("Content-Type:text/javascript charset=utf-8");
+    header("Content-Type: application/javascript; charset=utf-8");
     echo $this->callback . '(' . $this->createJson($this->layer) . ');';
   }
 
