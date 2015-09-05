@@ -12,4 +12,6 @@ fi
 echo
 echo "Apache logs:"
 echo
-exec /usr/sbin/apache2ctl -e info -D FOREGROUND
+source /etc/apache2/envvars
+rm -Rf $APACHE_PID_FILE
+exec /usr/sbin/apache2 -e info -D FOREGROUND

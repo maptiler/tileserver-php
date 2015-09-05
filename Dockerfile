@@ -23,4 +23,4 @@ RUN chmod +x /start.sh && \
 VOLUME /var/www
 EXPOSE 80
 
-CMD ["/start.sh"]
+ENTRYPOINT ["/start.sh"]
