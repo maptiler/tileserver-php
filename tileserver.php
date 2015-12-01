@@ -764,11 +764,7 @@ class Wmts extends Server {
       $profile = $m['profile'];
       $bounds = $m['bounds'];
       $format = $m['format'];
-      if ($format == 'jpgpng'){
-        $mime = 'image/jpgpng';
-      } else {
-        $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/png';
-      }  
+      $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/' . $format;
       if ($profile == 'geodetic') {
         $tileMatrixSet = "WGS84";
       } else {
