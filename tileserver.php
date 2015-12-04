@@ -20,10 +20,10 @@ Router::serve(array(
     '/:alpha/:number/:number/:number.:alpha.json' => 'Json:getUTFGrid',
     '/wmts' => 'Wmts:get',
     '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:get',
-    '/wmts/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/wmts/:alpha/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/wmts/:alpha/:alpha/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:alpha/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
     '/tms/:alpha' => 'Tms:getLayerCapabilities',
 ));
@@ -92,13 +92,12 @@ class Server {
       $this->layer = $params[1];
     }
     $params = array_reverse($params);
-    if (isset($params[3])) {
-      $this->z = $params[3];
-      $this->x = $params[2];
-      $this->y = $params[1];
-    }
-    if (isset($params[0])) {
-      $this->ext = $params[0];
+    if (isset($params[2])) {
+      $this->z = $params[2];
+      $this->x = $params[1];
+      $file = explode('.', $params[0]);
+      $this->y = $file[0];
+      $this->ext = isset($file[1]) ? $file[1] : NULL;
     }
   }
 
@@ -331,10 +330,21 @@ class Server {
         echo $data;
       }
     } elseif ($this->isFileLayer($tileset)) {
-      $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y . '.' . $ext;
+      $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y;
+      $mime = 'image/';
+      if($ext != NULL){
+        $name .= '.' . $ext;
+      }
       if ($fp = @fopen($name, 'rb')) {
+        if($ext != NULL){
+          $mime .= $ext;
+        }else{
+          //detect image type from file
+          $mimetypes = ['gif', 'jpeg', 'png'];
+          $mime .= $mimetypes[exif_imagetype($name) - 1];
+        }
         header('Access-Control-Allow-Origin: *');
-        header('Content-Type: image/' . $ext);
+        header('Content-Type: ' . $mime);
         header('Content-Length: ' . filesize($name));
         fpassthru($fp);
         die;
@@ -350,8 +360,8 @@ class Server {
           echo '{"message":"Tile does not exist"}';
           die;
         }
-        $this->getCleanTile($meta->scale);
       }
+      $this->getCleanTile($meta->scale);
     } else {
       header('HTTP/1.1 404 Not Found');
       echo 'Server: Unknown or not specified dataset "'.$tileset.'"';
@@ -552,7 +562,12 @@ class Json extends Server {
     $metadata['scheme'] = 'xyz';
     $tiles = array();
     foreach ($this->config['baseUrls'] as $url) {
-      $tiles[] = '' . $this->config['protocol'] . '://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
+      $url = '' . $this->config['protocol'] . '://' . $url . '/' . 
+              $metadata['basename'] . '/{z}/{x}/{y}';
+      if(strlen($metadata['format']) <= 4){
+        $url .= '.' . $metadata['format'];
+      }
+      $tiles[] = $url;
     }
     $metadata['tiles'] = $tiles;
     if ($this->isDBLayer($metadata['basename'])) {
@@ -763,7 +778,7 @@ class Wmts extends Server {
       $title = (array_key_exists('name', $m)) ? $m['name'] : $basename;
       $profile = $m['profile'];
       $bounds = $m['bounds'];
-      $format = $m['format'];
+      $format = $m['format'] == 'hybrid' ? 'jpgpng' : $m['format'];
       $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/' . $format;
       if ($profile == 'geodetic') {
         $tileMatrixSet = "WGS84";
@@ -772,6 +787,11 @@ class Wmts extends Server {
         list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
+      }
+      $resourceUrlTemplate = $this->config['protocol'] . '://'
+      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
+      if(strlen($format) <= 4){
+        $resourceUrlTemplate .= '.' . $format;
       }
       echo'
     <Layer>
@@ -788,8 +808,7 @@ class Wmts extends Server {
       <TileMatrixSetLink>
         <TileMatrixSet>' . $tileMatrixSet . '</TileMatrixSet>
       </TileMatrixSetLink>
-      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $this->config['protocol'] . '://'
-      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
+      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
     echo '
@@ -1160,7 +1179,13 @@ class Wmts extends Server {
       } else {
         $format = $this->getGlobal('Format');
       }
-      parent::renderTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format);
+      parent::renderTile(
+              $this->getGlobal('Layer'), 
+              $this->getGlobal('TileMatrix'), 
+              $this->getGlobal('TileRow'), 
+              $this->getGlobal('TileCol'), 
+              $format
+              );
     } else {
       parent::renderTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
     }
@@ -1446,7 +1471,7 @@ class Router {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
-          ':alpha' => '([a-zA-Z0-9-_@]+)'
+          ':alpha' => '([a-zA-Z0-9-_@.]+)'
       );
       //global $config;
       foreach ($routes as $pattern => $handler_name) {
