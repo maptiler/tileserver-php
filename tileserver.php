@@ -308,11 +308,12 @@ class Server {
       $result = $this->db->query('select tile_data as t from tiles where zoom_level=' . $z . ' and tile_column=' . $x . ' and tile_row=' . $y);
       $data = $result->fetchColumn();
       if (!isset($data) || $data === FALSE) {
-        //scale of tile (for retina tiles)
+        //if tile doesn't exist
+        //select scale of tile (for retina tiles)
         $result = $this->db->query('select value from metadata where name="scale"');
         $resultdata = $result->fetchColumn();
         $scale = isset($resultdata) && $resultdata !== FALSE ? $resultdata : 1;
-        $this->getCleanTile($scale);
+        $this->getCleanTile($scale, $ext);
       } else {
         $result = $this->db->query('select value from metadata where name="format"');
         $resultdata = $result->fetchColumn();
@@ -354,14 +355,8 @@ class Server {
         if(!isset($meta->scale)){
           $meta->scale = 1;
         }
-        if ($ext == 'pbf') {
-          header('HTTP/1.1 404 Not Found');
-          header('Content-Type: application/json; charset=utf-8');
-          echo '{"message":"Tile does not exist"}';
-          die;
-        }
       }
-      $this->getCleanTile($meta->scale);
+      $this->getCleanTile($meta->scale, $ext);
     } else {
       header('HTTP/1.1 404 Not Found');
       echo 'Server: Unknown or not specified dataset "'.$tileset.'"';
@@ -373,16 +368,25 @@ class Server {
    * Returns clean tile
    * @param integer $scale Default 1
    */
-  public function getCleanTile($scale = 1) {
-    $tileSize = 256 * $scale;
-    $png = imagecreatetruecolor($tileSize, $tileSize);
-    imagesavealpha($png, true);
-    $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
-    imagefill($png, 0, 0, $trans_colour);
-    header('Access-Control-Allow-Origin: *');
-    header('Content-type: image/png');
-    imagepng($png);
-    die;
+  public function getCleanTile($scale = 1, $format = 'png') {
+    switch ($format) {
+      case 'pbf':
+        header('HTTP/1.1 404 Not Found');
+        header('Content-Type: application/json; charset=utf-8');
+        echo '{"message":"Tile does not exist"}';
+        die;
+      case 'png':
+      default:
+        $tileSize = 256 * $scale;
+        $png = imagecreatetruecolor($tileSize, $tileSize);
+        imagesavealpha($png, true);
+        $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
+        imagefill($png, 0, 0, $trans_colour);
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: image/png');
+        imagepng($png);
+        die;
+    }
   }
 
   /**
