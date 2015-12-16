@@ -38,9 +38,9 @@ Requirements:
 -------------
 
 - Apache webserver (with mod_rewrite / .htaccess supported)
-- PHP 5.2+
+- PHP 5.2+ with SQLite module (php5-sqlite)
 
-(or anther webserver implementing mod_rewrite rules and PHP)
+(or another webserver implementing mod_rewrite rules and PHP)
 
 Installation:
 -------------
