@@ -15,9 +15,9 @@ Router::serve(array(
     '/' => 'Server:getHtml',
     '/test' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
+    '/:alpha/:number/:number/:number.:alpha.json' => 'Json:getUTFGrid',
     '/:alpha.json' => 'Json:getJson',
     '/:alpha.jsonp' => 'Json:getJsonp',
-    '/:alpha/:number/:number/:number.:alpha.json' => 'Json:getUTFGrid',
     '/wmts' => 'Wmts:get',
     '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:get',
     '/wmts/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
@@ -1475,7 +1475,7 @@ class Router {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
-          ':alpha' => '([a-zA-Z0-9-_@.]+)'
+          ':alpha' => '([a-zA-Z0-9-_@\.]+)'
       );
       //global $config;
       foreach ($routes as $pattern => $handler_name) {
