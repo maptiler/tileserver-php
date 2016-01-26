@@ -15,7 +15,7 @@ Router::serve(array(
     '/' => 'Server:getHtml',
     '/test' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
-    '/:alpha/:number/:number/:number.:alpha.json' => 'Json:getUTFGrid',
+    '/:alpha/:number/:number/:number.grid.json' => 'Json:getUTFGrid',
     '/:alpha.json' => 'Json:getJson',
     '/:alpha.jsonp' => 'Json:getJsonp',
     '/wmts' => 'Wmts:get',
@@ -433,7 +433,7 @@ class Server {
             header("Content-Type:text/javascript; charset=utf-8");
             echo $grid;
           }
-        }
+        } 
       } catch (PDOException $e) {
         header('Content-type: text/plain');
         print 'Error querying the database: ' . $e->getMessage();
