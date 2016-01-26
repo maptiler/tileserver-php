@@ -35,25 +35,25 @@ class Server {
 
   /**
    * Configuration of TileServer [baseUrls, serverTitle]
-   * @var array 
+   * @var array
    */
   public $config;
 
   /**
    * Datasets stored in file structure
-   * @var array 
+   * @var array
    */
   public $fileLayer = array();
 
   /**
    * Datasets stored in database
-   * @var array 
+   * @var array
    */
   public $dbLayer = array();
 
   /**
    * PDO database connection
-   * @var object 
+   * @var object
    */
   public $db;
 
@@ -143,7 +143,7 @@ class Server {
   }
 
   /**
-   * 
+   *
    * @param string $jsonFileName
    * @return array
    */
@@ -166,7 +166,7 @@ class Server {
 
     $resultdata = $result->fetchAll();
     foreach ($resultdata as $r) {
-      $value = preg_replace('/(\\n)+/','',$r['value']); 
+      $value = preg_replace('/(\\n)+/','',$r['value']);
       $metadata[$r['name']] = addslashes($value);
     }
     if (!array_key_exists('minzoom', $metadata)
@@ -203,7 +203,7 @@ class Server {
     $metadata['basename'] = $mbt[0];
     return $metadata;
   }
-  
+
   /**
    * Convert row number to latitude of the top of the row
    * @param integer $r
@@ -406,20 +406,22 @@ class Server {
       }
       try {
         $this->DBconnect($tileset . '.mbtiles');
-        $result = $this->db->query('SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND tile_row = ' . $y . ' AND zoom_level = ' . $z);
-        if (!isset($result) || $result === FALSE) {
-          header('Access-Control-Allow-Origin: *');
-          echo '{}';
-          die;
-        } else {
-          $data = $result->fetchColumn();
 
-          $grid = gzuncompress($data);
+        $query = 'SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND '
+                . 'tile_row = ' . $y . ' AND zoom_level = ' . $z;
+        $result = $this->db->query($query);
+        $data = $result->fetch(PDO::FETCH_ASSOC);
+
+        if ($data !== FALSE) {
+          $grid = gzuncompress($data['grid']);
           $grid = substr(trim($grid), 0, -1);
 
           //adds legend (data) to output
           $grid .= ',"data":{';
-          $result = $this->db->query('SELECT key_name as key, key_json as json FROM grid_data WHERE zoom_level=' . $z . ' and tile_column=' . $x . ' and tile_row=' . $y);
+          $kquery = 'SELECT key_name as key, key_json as json FROM grid_data '
+                  . 'WHERE zoom_level=' . $z . ' and '
+                  . 'tile_column=' . $x . ' and tile_row=' . $y;
+          $result = $this->db->query($kquery);
           while ($r = $result->fetch(PDO::FETCH_ASSOC)) {
             $grid .= '"' . $r['key'] . '":' . $r['json'] . ',';
           }
@@ -427,14 +429,18 @@ class Server {
           header('Access-Control-Allow-Origin: *');
 
           if (isset($_GET['callback']) && !empty($_GET['callback'])) {
-            header("Content-Type:text/javascript charset=utf-8");
+            header('Content-Type:text/javascript charset=utf-8');
             echo $_GET['callback'] . '(' . $grid . ');';
           } else {
-            header("Content-Type:text/javascript; charset=utf-8");
+            header('Content-Type:text/javascript; charset=utf-8');
             echo $grid;
           }
-        } 
-      } catch (PDOException $e) {
+        } else {
+          header('Access-Control-Allow-Origin: *');
+          echo '{}';
+          die;
+        }
+      } catch (Exception $e) {
         header('Content-type: text/plain');
         print 'Error querying the database: ' . $e->getMessage();
       }
@@ -515,7 +521,7 @@ class Json extends Server {
 
   /**
    * Callback for JSONP default grid
-   * @var string 
+   * @var string
    */
   private $callback = 'grid';
 
@@ -525,27 +531,27 @@ class Json extends Server {
   public $layer = 'index';
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
@@ -566,7 +572,7 @@ class Json extends Server {
     $metadata['scheme'] = 'xyz';
     $tiles = array();
     foreach ($this->config['baseUrls'] as $url) {
-      $url = '' . $this->config['protocol'] . '://' . $url . '/' . 
+      $url = '' . $this->config['protocol'] . '://' . $url . '/' .
               $metadata['basename'] . '/{z}/{x}/{y}';
       if(strlen($metadata['format']) <= 4){
         $url .= '.' . $metadata['format'];
@@ -670,27 +676,27 @@ class Wmts extends Server {
   public $layer;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
@@ -714,7 +720,7 @@ class Wmts extends Server {
   }
 
   /**
-   * Returns tilesets getCapabilities 
+   * Returns tilesets getCapabilities
    */
   public function getCapabilities() {
     header("Content-type: application/xml");
@@ -1184,10 +1190,10 @@ class Wmts extends Server {
         $format = $this->getGlobal('Format');
       }
       parent::renderTile(
-              $this->getGlobal('Layer'), 
-              $this->getGlobal('TileMatrix'), 
-              $this->getGlobal('TileRow'), 
-              $this->getGlobal('TileCol'), 
+              $this->getGlobal('Layer'),
+              $this->getGlobal('TileMatrix'),
+              $this->getGlobal('TileRow'),
+              $this->getGlobal('TileCol'),
               $format
               );
     } else {
@@ -1208,27 +1214,27 @@ class Tms extends Server {
   public $layer;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
