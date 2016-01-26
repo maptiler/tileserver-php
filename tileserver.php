@@ -484,8 +484,8 @@ class Server {
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
-    echo '<link rel="stylesheet" type="text/css" href="//tileserver.com/v1/index.css" />
-          <script src="//tileserver.com/v1/index.js"></script><body>
+    echo '<link rel="stylesheet" type="text/css" href="//cdn.klokantech.com/tileviewer/v1/index.css" />
+          <script src="//cdn.klokantech.com/tileviewer/v1/index.js"></script><body>
           <script>tileserver({index:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/index.json", tilejson:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/%n.json", tms:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/tms", wmts:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/wmts"});</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
