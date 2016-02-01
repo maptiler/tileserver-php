@@ -9,7 +9,7 @@
 
 global $config;
 $config['serverTitle'] = 'TileServer-php v1';
-//$config['baseUrls'] = ['t0.server.com', 't1.server.com'];
+//$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
 Router::serve(array(
     '/' => 'Server:getHtml',
@@ -341,7 +341,7 @@ class Server {
           $mime .= $ext;
         }else{
           //detect image type from file
-          $mimetypes = ['gif', 'jpeg', 'png'];
+          $mimetypes = array('gif', 'jpeg', 'png');
           $mime .= $mimetypes[exif_imagetype($name) - 1];
         }
         header('Access-Control-Allow-Origin: *');
@@ -1307,7 +1307,7 @@ class Tms extends Server {
   <TileFormat width="256" height="256" mime-type="' . $mime . '" extension="' . $m['format'] . '"/>
   <TileSets profile="global-' . $m['profile'] . '">';
     for ($zoom = $m['minzoom']; $zoom < $m['maxzoom'] + 1; $zoom++) {
-      echo '<TileSet href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'] [0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
+      echo '<TileSet href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
     }
     echo'</TileSets></TileMap>';
   }
