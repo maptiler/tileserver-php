@@ -9,21 +9,21 @@
 
 global $config;
 $config['serverTitle'] = 'TileServer-php v1';
-//$config['baseUrls'] = ['t0.server.com', 't1.server.com'];
+//$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
 Router::serve(array(
     '/' => 'Server:getHtml',
     '/test' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
+    '/:alpha/:number/:number/:number.grid.json' => 'Json:getUTFGrid',
     '/:alpha.json' => 'Json:getJson',
     '/:alpha.jsonp' => 'Json:getJsonp',
-    '/:alpha/:number/:number/:number.:alpha.json' => 'Json:getUTFGrid',
     '/wmts' => 'Wmts:get',
     '/wmts/1.0.0/WMTSCapabilities.xml' => 'Wmts:get',
-    '/wmts/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/wmts/:alpha/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/wmts/:alpha/:alpha/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
-    '/:alpha/:number/:number/:number.:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/wmts/:alpha/:alpha/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
+    '/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
     '/tms/:alpha' => 'Tms:getLayerCapabilities',
 ));
@@ -35,25 +35,25 @@ class Server {
 
   /**
    * Configuration of TileServer [baseUrls, serverTitle]
-   * @var array 
+   * @var array
    */
   public $config;
 
   /**
    * Datasets stored in file structure
-   * @var array 
+   * @var array
    */
   public $fileLayer = array();
 
   /**
    * Datasets stored in database
-   * @var array 
+   * @var array
    */
   public $dbLayer = array();
 
   /**
    * PDO database connection
-   * @var object 
+   * @var object
    */
   public $db;
 
@@ -92,13 +92,12 @@ class Server {
       $this->layer = $params[1];
     }
     $params = array_reverse($params);
-    if (isset($params[3])) {
-      $this->z = $params[3];
-      $this->x = $params[2];
-      $this->y = $params[1];
-    }
-    if (isset($params[0])) {
-      $this->ext = $params[0];
+    if (isset($params[2])) {
+      $this->z = $params[2];
+      $this->x = $params[1];
+      $file = explode('.', $params[0]);
+      $this->y = $file[0];
+      $this->ext = isset($file[1]) ? $file[1] : NULL;
     }
   }
 
@@ -144,7 +143,7 @@ class Server {
   }
 
   /**
-   * 
+   *
    * @param string $jsonFileName
    * @return array
    */
@@ -167,7 +166,7 @@ class Server {
 
     $resultdata = $result->fetchAll();
     foreach ($resultdata as $r) {
-      $value = preg_replace('/(\\n)+/','',$r['value']); 
+      $value = preg_replace('/(\\n)+/','',$r['value']);
       $metadata[$r['name']] = addslashes($value);
     }
     if (!array_key_exists('minzoom', $metadata)
@@ -204,7 +203,7 @@ class Server {
     $metadata['basename'] = $mbt[0];
     return $metadata;
   }
-  
+
   /**
    * Convert row number to latitude of the top of the row
    * @param integer $r
@@ -309,11 +308,12 @@ class Server {
       $result = $this->db->query('select tile_data as t from tiles where zoom_level=' . $z . ' and tile_column=' . $x . ' and tile_row=' . $y);
       $data = $result->fetchColumn();
       if (!isset($data) || $data === FALSE) {
-        //scale of tile (for retina tiles)
+        //if tile doesn't exist
+        //select scale of tile (for retina tiles)
         $result = $this->db->query('select value from metadata where name="scale"');
         $resultdata = $result->fetchColumn();
         $scale = isset($resultdata) && $resultdata !== FALSE ? $resultdata : 1;
-        $this->getCleanTile($scale);
+        $this->getCleanTile($scale, $ext);
       } else {
         $result = $this->db->query('select value from metadata where name="format"');
         $resultdata = $result->fetchColumn();
@@ -331,10 +331,21 @@ class Server {
         echo $data;
       }
     } elseif ($this->isFileLayer($tileset)) {
-      $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y . '.' . $ext;
+      $name = './' . $tileset . '/' . $z . '/' . $x . '/' . $y;
+      $mime = 'image/';
+      if($ext != NULL){
+        $name .= '.' . $ext;
+      }
       if ($fp = @fopen($name, 'rb')) {
+        if($ext != NULL){
+          $mime .= $ext;
+        }else{
+          //detect image type from file
+          $mimetypes = array('gif', 'jpeg', 'png');
+          $mime .= $mimetypes[exif_imagetype($name) - 1];
+        }
         header('Access-Control-Allow-Origin: *');
-        header('Content-Type: image/' . $ext);
+        header('Content-Type: ' . $mime);
         header('Content-Length: ' . filesize($name));
         fpassthru($fp);
         die;
@@ -344,14 +355,8 @@ class Server {
         if(!isset($meta->scale)){
           $meta->scale = 1;
         }
-        if ($ext == 'pbf') {
-          header('HTTP/1.1 404 Not Found');
-          header('Content-Type: application/json; charset=utf-8');
-          echo '{"message":"Tile does not exist"}';
-          die;
-        }
-        $this->getCleanTile($meta->scale);
       }
+      $this->getCleanTile($meta->scale, $ext);
     } else {
       header('HTTP/1.1 404 Not Found');
       echo 'Server: Unknown or not specified dataset "'.$tileset.'"';
@@ -363,16 +368,25 @@ class Server {
    * Returns clean tile
    * @param integer $scale Default 1
    */
-  public function getCleanTile($scale = 1) {
-    $tileSize = 256 * $scale;
-    $png = imagecreatetruecolor($tileSize, $tileSize);
-    imagesavealpha($png, true);
-    $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
-    imagefill($png, 0, 0, $trans_colour);
-    header('Access-Control-Allow-Origin: *');
-    header('Content-type: image/png');
-    imagepng($png);
-    die;
+  public function getCleanTile($scale = 1, $format = 'png') {
+    switch ($format) {
+      case 'pbf':
+        header('HTTP/1.1 404 Not Found');
+        header('Content-Type: application/json; charset=utf-8');
+        echo '{"message":"Tile does not exist"}';
+        die;
+      case 'png':
+      default:
+        $tileSize = 256 * $scale;
+        $png = imagecreatetruecolor($tileSize, $tileSize);
+        imagesavealpha($png, true);
+        $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
+        imagefill($png, 0, 0, $trans_colour);
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: image/png');
+        imagepng($png);
+        die;
+    }
   }
 
   /**
@@ -392,20 +406,22 @@ class Server {
       }
       try {
         $this->DBconnect($tileset . '.mbtiles');
-        $result = $this->db->query('SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND tile_row = ' . $y . ' AND zoom_level = ' . $z);
-        if (!isset($result) || $result === FALSE) {
-          header('Access-Control-Allow-Origin: *');
-          echo '{}';
-          die;
-        } else {
-          $data = $result->fetchColumn();
 
-          $grid = gzuncompress($data);
+        $query = 'SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND '
+                . 'tile_row = ' . $y . ' AND zoom_level = ' . $z;
+        $result = $this->db->query($query);
+        $data = $result->fetch(PDO::FETCH_ASSOC);
+
+        if ($data !== FALSE) {
+          $grid = gzuncompress($data['grid']);
           $grid = substr(trim($grid), 0, -1);
 
           //adds legend (data) to output
           $grid .= ',"data":{';
-          $result = $this->db->query('SELECT key_name as key, key_json as json FROM grid_data WHERE zoom_level=' . $z . ' and tile_column=' . $x . ' and tile_row=' . $y);
+          $kquery = 'SELECT key_name as key, key_json as json FROM grid_data '
+                  . 'WHERE zoom_level=' . $z . ' and '
+                  . 'tile_column=' . $x . ' and tile_row=' . $y;
+          $result = $this->db->query($kquery);
           while ($r = $result->fetch(PDO::FETCH_ASSOC)) {
             $grid .= '"' . $r['key'] . '":' . $r['json'] . ',';
           }
@@ -413,14 +429,18 @@ class Server {
           header('Access-Control-Allow-Origin: *');
 
           if (isset($_GET['callback']) && !empty($_GET['callback'])) {
-            header("Content-Type:text/javascript charset=utf-8");
+            header('Content-Type:text/javascript charset=utf-8');
             echo $_GET['callback'] . '(' . $grid . ');';
           } else {
-            header("Content-Type:text/javascript; charset=utf-8");
+            header('Content-Type:text/javascript; charset=utf-8');
             echo $grid;
           }
+        } else {
+          header('Access-Control-Allow-Origin: *');
+          echo '{}';
+          die;
         }
-      } catch (PDOException $e) {
+      } catch (Exception $e) {
         header('Content-type: text/plain');
         print 'Error querying the database: ' . $e->getMessage();
       }
@@ -470,8 +490,8 @@ class Server {
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title>';
-    echo '<link rel="stylesheet" type="text/css" href="//tileserver.com/v1/index.css" />
-          <script src="//tileserver.com/v1/index.js"></script><body>
+    echo '<link rel="stylesheet" type="text/css" href="//cdn.klokantech.com/tileviewer/v1/index.css" />
+          <script src="//cdn.klokantech.com/tileviewer/v1/index.js"></script><body>
           <script>tileserver({index:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/index.json", tilejson:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/%n.json", tms:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/tms", wmts:"' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/wmts"});</script>
           <h1>Welcome to ' . $this->config['serverTitle'] . '</h1>
           <p>This server distributes maps to desktop, web, and mobile applications.</p>
@@ -501,7 +521,7 @@ class Json extends Server {
 
   /**
    * Callback for JSONP default grid
-   * @var string 
+   * @var string
    */
   private $callback = 'grid';
 
@@ -511,27 +531,27 @@ class Json extends Server {
   public $layer = 'index';
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
@@ -552,12 +572,17 @@ class Json extends Server {
     $metadata['scheme'] = 'xyz';
     $tiles = array();
     foreach ($this->config['baseUrls'] as $url) {
-      $tiles[] = '' . $this->config['protocol'] . '://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.' . $metadata['format'];
+      $url = '' . $this->config['protocol'] . '://' . $url . '/' .
+              $metadata['basename'] . '/{z}/{x}/{y}';
+      if(strlen($metadata['format']) <= 4){
+        $url .= '.' . $metadata['format'];
+      }
+      $tiles[] = $url;
     }
     $metadata['tiles'] = $tiles;
     if ($this->isDBLayer($metadata['basename'])) {
       $this->DBconnect($metadata['basename'] . '.mbtiles');
-      $res = $this->db->query('SELECT name FROM sqlite_master WHERE name="grids";');
+      $res = $this->db->query('SELECT * FROM grids LIMIT 1;');
       if ($res) {
         foreach ($this->config['baseUrls'] as $url) {
           $grids[] = '' . $this->config['protocol'] . '://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.grid.json';
@@ -651,27 +676,27 @@ class Wmts extends Server {
   public $layer;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
@@ -695,7 +720,7 @@ class Wmts extends Server {
   }
 
   /**
-   * Returns tilesets getCapabilities 
+   * Returns tilesets getCapabilities
    */
   public function getCapabilities() {
     header("Content-type: application/xml");
@@ -763,8 +788,8 @@ class Wmts extends Server {
       $title = (array_key_exists('name', $m)) ? $m['name'] : $basename;
       $profile = $m['profile'];
       $bounds = $m['bounds'];
-      $format = $m['format'];
-      $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/png';
+      $format = $m['format'] == 'hybrid' ? 'jpgpng' : $m['format'];
+      $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/' . $format;
       if ($profile == 'geodetic') {
         $tileMatrixSet = "WGS84";
       } else {
@@ -772,6 +797,11 @@ class Wmts extends Server {
         list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
+      }
+      $resourceUrlTemplate = $this->config['protocol'] . '://'
+      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
+      if(strlen($format) <= 4){
+        $resourceUrlTemplate .= '.' . $format;
       }
       echo'
     <Layer>
@@ -788,8 +818,7 @@ class Wmts extends Server {
       <TileMatrixSetLink>
         <TileMatrixSet>' . $tileMatrixSet . '</TileMatrixSet>
       </TileMatrixSetLink>
-      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $this->config['protocol'] . '://'
-      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.' . $format . '"/>
+      <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
     echo '
@@ -1160,7 +1189,13 @@ class Wmts extends Server {
       } else {
         $format = $this->getGlobal('Format');
       }
-      parent::renderTile($this->getGlobal('Layer'), $this->getGlobal('TileMatrix'), $this->getGlobal('TileRow'), $this->getGlobal('TileCol'), $format);
+      parent::renderTile(
+              $this->getGlobal('Layer'),
+              $this->getGlobal('TileMatrix'),
+              $this->getGlobal('TileRow'),
+              $this->getGlobal('TileCol'),
+              $format
+              );
     } else {
       parent::renderTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
     }
@@ -1179,27 +1214,27 @@ class Tms extends Server {
   public $layer;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $z;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $y;
 
   /**
-   * @var integer 
+   * @var integer
    */
   public $x;
 
   /**
-   * @var string 
+   * @var string
    */
   public $ext;
 
   /**
-   * 
+   *
    * @param array $params
    */
   public function __construct($params) {
@@ -1272,7 +1307,7 @@ class Tms extends Server {
   <TileFormat width="256" height="256" mime-type="' . $mime . '" extension="' . $m['format'] . '"/>
   <TileSets profile="global-' . $m['profile'] . '">';
     for ($zoom = $m['minzoom']; $zoom < $m['maxzoom'] + 1; $zoom++) {
-      echo '<TileSet href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'] [0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
+      echo '<TileSet href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
     }
     echo'</TileSets></TileMap>';
   }
@@ -1446,7 +1481,7 @@ class Router {
       $tokens = array(
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
-          ':alpha' => '([a-zA-Z0-9-_@]+)'
+          ':alpha' => '([a-zA-Z0-9-_@\.]+)'
       );
       //global $config;
       foreach ($routes as $pattern => $handler_name) {
