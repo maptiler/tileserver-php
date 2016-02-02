@@ -1,7 +1,8 @@
 TileServer PHP: MapTiler and MBTiles maps via WMTS
 ==================================================
 
-[![Build Status](https://travis-ci.org/klokantech/tileserver-php.svg?branch=travis)](https://travis-ci.org/klokantech/tileserver-php)
+[![Build Status](https://travis-ci.org/klokantech/tileserver-php.svg)](https://travis-ci.org/klokantech/tileserver-php)
+[![Docker Hub](https://img.shields.io/badge/docker-hub-blue.svg)](https://hub.docker.com/r/klokantech/tileserver-php/)
 
 This server distributes maps to desktop, web, and mobile applications from
 a standard Apache+PHP web hosting.
