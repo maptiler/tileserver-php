@@ -718,6 +718,59 @@ class Wmts extends Server {
       $this->getCapabilities();
     }
   }
+  
+  /**
+   * Default TileMetrixSet for Pseudo Mercator projection 3857
+   * @return string TileMatrixSet xml
+   */
+  public function getMercatorTileMatrixSet(){
+    $name = 'GoogleMapsCompatible';
+    $corner = array(-20037508.34278925, 20037508.34278925);
+    $scalesBase = 559082264.0287178;
+    $scales = array();
+    
+    for($i = 0; $i <= 18; $i++){
+      $scales[] = $scalesBase / pow(2, $i);
+    }
+
+    return $this->getTileMatrixSet($name, $scales, $corner);
+  }
+  
+  /**
+   * Prints WMTS tilematrixset
+   * @param string $name
+   * @param array $scales Array of scales
+   * @param array $corner Position of TopLeft corner of matrix
+   * @param string $crs Code of crs eg: EPSG:3857
+   * @param array $matrixRatio Ratio of matrix sides
+   * @param array $tilesize Size of tile in pixels
+   * @return string TileMatrixSet xml
+   */
+  public function getTileMatrixSet($name, $scales, $corner, $crs = 'EPSG:3857', $matrixRatio = array(1, 1), $tilesize = array(256, 256)){
+    $srs = explode(':', $crs);
+    $TileMatrixSet = '<TileMatrixSet>
+      <ows:Title>' . $name . '</ows:Title>
+      <ows:Abstract>' . $name . ' '. $crs .'</ows:Abstract>
+      <ows:Identifier>' . $name . '</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:'.$srs[0].'::'.$srs[1].'</ows:SupportedCRS>';
+   // $TileMatrixSet .= '<WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleMapsCompatible</WellKnownScaleSet>';
+    for($i = 0; $i <= sizeof($scales); $i++){
+      $matrixWidth = pow(2, $i);
+    $TileMatrixSet .= '
+      <TileMatrix>
+        <ows:Identifier>' . $i . '</ows:Identifier>
+        <ScaleDenominator>' . $scales[$i] . '</ScaleDenominator>
+        <TopLeftCorner>'. $corner[0] . ' ' . $corner[1] .'</TopLeftCorner>
+        <TileWidth>' . $tilesize[0] . '</TileWidth>
+        <TileHeight>' . $tilesize[1] . '</TileHeight>
+        <MatrixWidth>' . $matrixWidth * $matrixRatio[0] . '</MatrixWidth>
+        <MatrixHeight>' . $matrixWidth * $matrixRatio[1] . '</MatrixHeight>
+      </TileMatrix>';
+    }
+    $TileMatrixSet .= '</TileMatrixSet>';
+    
+    return $TileMatrixSet;
+  }
 
   /**
    * Returns tilesets getCapabilities
@@ -821,358 +874,26 @@ class Wmts extends Server {
       <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
-    echo '
-    <TileMatrixSet>
-      <ows:Title>GoogleMapsCompatible</ows:Title>
-      <ows:Abstract>the wellknown \'GoogleMapsCompatible\' tile matrix set defined by OGC WMTS specification</ows:Abstract>
-      <ows:Identifier>GoogleMapsCompatible</ows:Identifier>
-      <ows:SupportedCRS>urn:ogc:def:crs:EPSG:6.18:3:3857</ows:SupportedCRS>
-      <WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleMapsCompatible</WellKnownScaleSet>
-      <TileMatrix>
-        <ows:Identifier>0</ows:Identifier>
-        <ScaleDenominator>559082264.0287178</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>1</MatrixWidth>
-        <MatrixHeight>1</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>1</ows:Identifier>
-        <ScaleDenominator>279541132.0143589</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>2</MatrixWidth>
-        <MatrixHeight>2</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>2</ows:Identifier>
-        <ScaleDenominator>139770566.0071794</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>4</MatrixWidth>
-        <MatrixHeight>4</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>3</ows:Identifier>
-        <ScaleDenominator>69885283.00358972</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>8</MatrixWidth>
-        <MatrixHeight>8</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>4</ows:Identifier>
-        <ScaleDenominator>34942641.50179486</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>16</MatrixWidth>
-        <MatrixHeight>16</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>5</ows:Identifier>
-        <ScaleDenominator>17471320.75089743</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>32</MatrixWidth>
-        <MatrixHeight>32</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>6</ows:Identifier>
-        <ScaleDenominator>8735660.375448715</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>64</MatrixWidth>
-        <MatrixHeight>64</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>7</ows:Identifier>
-        <ScaleDenominator>4367830.187724357</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>128</MatrixWidth>
-        <MatrixHeight>128</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>8</ows:Identifier>
-        <ScaleDenominator>2183915.093862179</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>256</MatrixWidth>
-        <MatrixHeight>256</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>9</ows:Identifier>
-        <ScaleDenominator>1091957.546931089</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>512</MatrixWidth>
-        <MatrixHeight>512</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>10</ows:Identifier>
-        <ScaleDenominator>545978.7734655447</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>1024</MatrixWidth>
-        <MatrixHeight>1024</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>11</ows:Identifier>
-        <ScaleDenominator>272989.3867327723</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>2048</MatrixWidth>
-        <MatrixHeight>2048</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>12</ows:Identifier>
-        <ScaleDenominator>136494.6933663862</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>4096</MatrixWidth>
-        <MatrixHeight>4096</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>13</ows:Identifier>
-        <ScaleDenominator>68247.34668319309</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>8192</MatrixWidth>
-        <MatrixHeight>8192</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>14</ows:Identifier>
-        <ScaleDenominator>34123.67334159654</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>16384</MatrixWidth>
-        <MatrixHeight>16384</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>15</ows:Identifier>
-        <ScaleDenominator>17061.83667079827</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>32768</MatrixWidth>
-        <MatrixHeight>32768</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>16</ows:Identifier>
-        <ScaleDenominator>8530.918335399136</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>65536</MatrixWidth>
-        <MatrixHeight>65536</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>17</ows:Identifier>
-        <ScaleDenominator>4265.459167699568</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>131072</MatrixWidth>
-        <MatrixHeight>131072</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>18</ows:Identifier>
-        <ScaleDenominator>2132.729583849784</ScaleDenominator>
-        <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>262144</MatrixWidth>
-        <MatrixHeight>262144</MatrixHeight>
-      </TileMatrix>
-    </TileMatrixSet>
-    <TileMatrixSet>
-      <ows:Identifier>WGS84</ows:Identifier>
-      <ows:Title>GoogleCRS84Quad</ows:Title>
-      <ows:SupportedCRS>urn:ogc:def:crs:EPSG:6.3:4326</ows:SupportedCRS>
-      <ows:BoundingBox crs="urn:ogc:def:crs:EPSG:6.3:4326">
-        <LowerCorner>-180.000000 -90.000000</LowerCorner>
-        <UpperCorner>180.000000 90.000000</UpperCorner>
-      </ows:BoundingBox>
-      <WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleCRS84Quad</WellKnownScaleSet>
-      <TileMatrix>
-        <ows:Identifier>0</ows:Identifier>
-        <ScaleDenominator>279541132.01435887813568115234</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>2</MatrixWidth>
-        <MatrixHeight>1</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>1</ows:Identifier>
-        <ScaleDenominator>139770566.00717943906784057617</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>4</MatrixWidth>
-        <MatrixHeight>2</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>2</ows:Identifier>
-        <ScaleDenominator>69885283.00358971953392028809</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>8</MatrixWidth>
-        <MatrixHeight>4</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>3</ows:Identifier>
-        <ScaleDenominator>34942641.50179485976696014404</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>16</MatrixWidth>
-        <MatrixHeight>8</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>4</ows:Identifier>
-        <ScaleDenominator>17471320.75089742988348007202</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>32</MatrixWidth>
-        <MatrixHeight>16</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>5</ows:Identifier>
-        <ScaleDenominator>8735660.37544871494174003601</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>64</MatrixWidth>
-        <MatrixHeight>32</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>6</ows:Identifier>
-        <ScaleDenominator>4367830.18772435747087001801</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>128</MatrixWidth>
-        <MatrixHeight>64</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>7</ows:Identifier>
-        <ScaleDenominator>2183915.09386217873543500900</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>256</MatrixWidth>
-        <MatrixHeight>128</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>8</ows:Identifier>
-        <ScaleDenominator>1091957.54693108936771750450</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>512</MatrixWidth>
-        <MatrixHeight>256</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>9</ows:Identifier>
-        <ScaleDenominator>545978.77346554468385875225</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>1024</MatrixWidth>
-        <MatrixHeight>512</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>10</ows:Identifier>
-        <ScaleDenominator>272989.38673277234192937613</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>2048</MatrixWidth>
-        <MatrixHeight>1024</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>11</ows:Identifier>
-        <ScaleDenominator>136494.69336638617096468806</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>4096</MatrixWidth>
-        <MatrixHeight>2048</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>12</ows:Identifier>
-        <ScaleDenominator>68247.34668319308548234403</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>8192</MatrixWidth>
-        <MatrixHeight>4096</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>13</ows:Identifier>
-        <ScaleDenominator>34123.67334159654274117202</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>16384</MatrixWidth>
-        <MatrixHeight>8192</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>14</ows:Identifier>
-        <ScaleDenominator>17061.83667079825318069197</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>32768</MatrixWidth>
-        <MatrixHeight>16384</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>15</ows:Identifier>
-        <ScaleDenominator>8530.91833539912659034599</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>65536</MatrixWidth>
-        <MatrixHeight>32768</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>16</ows:Identifier>
-        <ScaleDenominator>4265.45916769956329517299</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>131072</MatrixWidth>
-        <MatrixHeight>65536</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>17</ows:Identifier>
-        <ScaleDenominator>2132.72958384978574031265</ScaleDenominator>
-        <TopLeftCorner>90.000000 -180.000000</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>262144</MatrixWidth>
-        <MatrixHeight>131072</MatrixHeight>
-      </TileMatrix>
-    </TileMatrixSet>
-  </Contents>
+    
+    //Print mercator TileMatrixSet
+    echo $this->getMercatorTileMatrixSet();
+    
+    //Print wgs84 TileMatrixSet
+    $name = 'WGS84';
+    $corner = array(-180.000000, 90.000000);
+    $scales = array(279541132.01435887813568115234, 139770566.00717943906784057617, 
+        69885283.00358971953392028809, 34942641.50179485976696014404, 17471320.75089742988348007202,
+        8735660.37544871494174003601, 4367830.18772435747087001801, 2183915.09386217873543500900, 
+        1091957.54693108936771750450, 545978.77346554468385875225, 272989.38673277234192937613,
+        136494.69336638617096468806, 68247.34668319308548234403, 34123.67334159654274117202,
+        17061.83667079825318069197, 8530.91833539912659034599, 4265.45916769956329517299,
+        2132.72958384978574031265);
+    $crs = 'EPSG::4326';
+    $matrixRatio = array(2, 1);
+    
+    echo $this->getTileMatrixSet($name, $scales, $corner, $crs, $matrixRatio);
+
+  echo '</Contents>
   <ServiceMetadataURL xlink:href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/wmts/1.0.0/WMTSCapabilities.xml"/>
 </Capabilities>';
   }
