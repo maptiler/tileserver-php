@@ -718,6 +718,71 @@ class Wmts extends Server {
       $this->getCapabilities();
     }
   }
+
+  /**
+   * Validates tilematrixset, calculates missing params
+   * @param Obrject $tileMatrix
+   * @return Object
+   */
+  public function parseTileMatrix($tileMatrix){
+    
+    for($i = 0; $i <= sizeof($tileMatrix[$i]); $i++){
+      if(!isset($tileMatrix[$i]['tile_size'])){
+        $tileMatrix[$i]['tile_size'] = array(256, 256);
+      }
+      
+      if (!isset($tileMatrix[$i]['matrix_size'])) {
+        $tileMatrix[$i]['matrix_size'] = array(pow(2, $i), pow(2, $i));
+      }
+
+      //když není nebo když 
+      if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
+        $tileMatrix[$i]['origin'] = array($tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]);
+      }
+      
+      if(!isset($tileMatrix[$i]['scale_denominator'])){
+        //constants
+        $tileMatrix[$i]['scale_denominator'] = null;
+      }
+      
+    if(!isset($tileMatrix[$i]['pixel_size']) && $tileMatrix[$i]['pixel_size'][1] > 0){
+      
+    }
+      
+      //kontrola jestli piel size je kladná v obou osách
+    }
+    
+    return $tileMatrix;
+  }
+  
+  /**
+   * Calculates corners of tilematrix
+   * @param array $extent
+   * @param array $origin
+   * @param array $pixel_size
+   * @param array $tile_size
+   * @return array
+   */
+  public function tilesOfExtent($extent, $origin, $pixel_size, $tile_size) {
+    //$minx, $miny, $maxx, $maxy = $extent;
+          
+    function minsample($x, $f){
+      return $f > 0 ? floor($x / $f) : ceil(($x / $f) - 1);
+    }
+    
+    function maxsample($x, $f){
+      return $f < 0 ? floor($x / $f) : ceil(($x / $f) - 1);
+    }
+
+    $tiles = array();
+    $tiles[] = minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]);
+    $tiles[] =minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]);
+        
+    $tiles[] =maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]);
+    $tiles[] =maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]);
+    
+    return $tiles;
+  }
   
   /**
    * Default TileMetrixSet for Pseudo Mercator projection 3857
