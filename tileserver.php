@@ -221,10 +221,10 @@ class Server {
    * @return object
    */
   public function metadataValidation($metadata) {
-    if (array_key_exists('bounds', $metadata)) {
+    if (!array_key_exists('bounds', $metadata)) {
+      $metadata['bounds'] = array(-180, -85.06, 180, 85.06);
+    } elseif (!is_array($metadata['bounds'])) {
       $metadata['bounds'] = array_map('floatval', explode(',', $metadata['bounds']));
-    } else {
-      $metadata['bounds'] = array(-180, -85.051128779807, 180, 85.051128779807);
     }
     if (!array_key_exists('profile', $metadata)) {
       $metadata['profile'] = 'mercator';
