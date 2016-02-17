@@ -725,36 +725,36 @@ class Wmts extends Server {
    * @return Object
    */
   public function parseTileMatrix($tileMatrix){
-    
+
     for($i = 0; $i <= sizeof($tileMatrix[$i]); $i++){
       if(!isset($tileMatrix[$i]['tile_size'])){
         $tileMatrix[$i]['tile_size'] = array(256, 256);
       }
-      
+
       if (!isset($tileMatrix[$i]['matrix_size'])) {
         $tileMatrix[$i]['matrix_size'] = array(pow(2, $i), pow(2, $i));
       }
 
-      //když není nebo když 
+      //když není nebo když
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
         $tileMatrix[$i]['origin'] = array($tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]);
       }
-      
+
       if(!isset($tileMatrix[$i]['scale_denominator'])){
         //constants
         $tileMatrix[$i]['scale_denominator'] = null;
       }
-      
+
     if(!isset($tileMatrix[$i]['pixel_size']) && $tileMatrix[$i]['pixel_size'][1] > 0){
-      
+
     }
-      
+
       //kontrola jestli piel size je kladná v obou osách
     }
-    
+
     return $tileMatrix;
   }
-  
+
   /**
    * Calculates corners of tilematrix
    * @param array $extent
@@ -765,11 +765,11 @@ class Wmts extends Server {
    */
   public function tilesOfExtent($extent, $origin, $pixel_size, $tile_size) {
     //$minx, $miny, $maxx, $maxy = $extent;
-          
+
     function minsample($x, $f){
       return $f > 0 ? floor($x / $f) : ceil(($x / $f) - 1);
     }
-    
+
     function maxsample($x, $f){
       return $f < 0 ? floor($x / $f) : ceil(($x / $f) - 1);
     }
@@ -777,59 +777,94 @@ class Wmts extends Server {
     $tiles = array();
     $tiles[] = minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]);
     $tiles[] =minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]);
-        
+
     $tiles[] =maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]);
     $tiles[] =maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]);
-    
+
     return $tiles;
   }
-  
+
   /**
    * Default TileMetrixSet for Pseudo Mercator projection 3857
    * @return string TileMatrixSet xml
    */
   public function getMercatorTileMatrixSet(){
-    $name = 'GoogleMapsCompatible';
+    $denominatorBase = 559082264.0287178;
     $extent = array(-20037508.34,-20037508.34,20037508.34,20037508.34);
-    $scalesBase = 559082264.0287178;
-    $scales = array();
+    $tileMatrixSet = array();
 
     for($i = 0; $i <= 18; $i++){
-      $scales[] = $scalesBase / pow(2, $i);
+      $level = new stdClass();
+      $level->extent = $extent;
+      $level->id = (string) $i;
+      $matrixSize = pow(2, $i);
+      $level->matrix_size = array($matrixSize, $matrixSize);
+      $level->origin = array($extent[0], $extent[1]);
+      $level->scale_denominator = $denominatorBase / pow(2, $i);
+      $level->tile_size = array(256, 256);
+      
+      $tileMatrixSet[] = (array) $level;
     }
 
-    return $this->getTileMatrixSet($name, $scales, $extent);
+    return $this->getTileMatrixSet('GoogleMapsCompatible', $tileMatrixSet, 'EPSG:3857');
+  }
+  
+  /**
+   * Default TileMetrixSet for WGS84 projection 4326
+   * @return string Xml
+   */
+  public function getWGS84TileMatrixSet(){
+    $extent = array(-180.000000, -90.000000, 180.000000, 90.000000);
+    $scaleDenominators = array(279541132.01435887813568115234, 139770566.00717943906784057617,
+      69885283.00358971953392028809, 34942641.50179485976696014404, 17471320.75089742988348007202,
+      8735660.37544871494174003601, 4367830.18772435747087001801, 2183915.09386217873543500900,
+      1091957.54693108936771750450, 545978.77346554468385875225, 272989.38673277234192937613,
+      136494.69336638617096468806, 68247.34668319308548234403, 34123.67334159654274117202,
+      17061.83667079825318069197, 8530.91833539912659034599, 4265.45916769956329517299,
+      2132.72958384978574031265);
+    $tileMatrixSet = array();
+
+    for($i = 0; $i <= count($scaleDenominators); $i++){
+      $level = new stdClass();
+      $level->extent = $extent;
+      $level->id = (string) $i;
+      $matrixSize = pow(2, $i);
+      $level->matrix_size = array($matrixSize * 2, $matrixSize);
+      $level->origin = array($extent[0], $extent[1]);
+      $level->scale_denominator = $scaleDenominators[$i];
+      $level->tile_size = array(256, 256);
+      
+      $tileMatrixSet[] = (array) $level;
+    }
+
+    return $this->getTileMatrixSet('WGS84', $tileMatrixSet, 'EPSG:4326');
   }
 
   /**
-   * Prints WMTS tilematrixset
+   * Prints WMTS TileMatrixSet
    * @param string $name
-   * @param array $scales Array of scales
-   * @param array $extent Boundingbox of matrix
+   * @param array $tileMatrixSet Array of levels
    * @param string $crs Code of crs eg: EPSG:3857
-   * @param array $matrixRatio Ratio of matrix sides
-   * @param array $tilesize Size of tile in pixels
    * @return string TileMatrixSet xml
    */
-  public function getTileMatrixSet($name, $scales, $extent, $crs = 'EPSG:3857', $matrixRatio = array(1, 1), $tilesize = array(256, 256)){
+  public function getTileMatrixSet($name, $tileMatrixSet, $crs = 'EPSG:3857'){
     $srs = explode(':', $crs);
     $TileMatrixSet = '<TileMatrixSet>
       <ows:Title>' . $name . '</ows:Title>
       <ows:Abstract>' . $name . ' '. $crs .'</ows:Abstract>
       <ows:Identifier>' . $name . '</ows:Identifier>
       <ows:SupportedCRS>urn:ogc:def:crs:'.$srs[0].'::'.$srs[1].'</ows:SupportedCRS>';
-   // $TileMatrixSet .= '<WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleMapsCompatible</WellKnownScaleSet>';
-    for($i = 0; $i <= sizeof($scales); $i++){
-      $matrixWidth = pow(2, $i);
+   // <WellKnownScaleSet>urn:ogc:def:wkss:OGC:1.0:GoogleMapsCompatible</WellKnownScaleSet>;
+    foreach($tileMatrixSet as $level){
     $TileMatrixSet .= '
       <TileMatrix>
-        <ows:Identifier>' . $i . '</ows:Identifier>
-        <ScaleDenominator>' . $scales[$i] . '</ScaleDenominator>
-        <TopLeftCorner>'. $extent[0] . ' ' . $extent[3] .'</TopLeftCorner>
-        <TileWidth>' . $tilesize[0] . '</TileWidth>
-        <TileHeight>' . $tilesize[1] . '</TileHeight>
-        <MatrixWidth>' . $matrixWidth * $matrixRatio[0] . '</MatrixWidth>
-        <MatrixHeight>' . $matrixWidth * $matrixRatio[1] . '</MatrixHeight>
+        <ows:Identifier>' . $level['id'] . '</ows:Identifier>
+        <ScaleDenominator>' .  $level['scale_denominator'] . '</ScaleDenominator>
+        <TopLeftCorner>'.  $level['origin'][0] . ' ' .  $level['origin'][1] .'</TopLeftCorner>
+        <TileWidth>' .  $level['tile_size'][0] . '</TileWidth>
+        <TileHeight>' .  $level['tile_size'][1] . '</TileHeight>
+        <MatrixWidth>' . $level['matrix_size'][0] . '</MatrixWidth>
+        <MatrixHeight>' .  $level['matrix_size'][1] . '</MatrixHeight>
       </TileMatrix>';
     }
     $TileMatrixSet .= '</TileMatrixSet>';
@@ -895,9 +930,9 @@ class Wmts extends Server {
     </ows:Operation>
   </ows:OperationsMetadata>
   <Contents>';
-    
+
     $customtileMatrixSets = '';
-    
+
     //layers
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     $mercator = new GlobalMercator();
@@ -912,19 +947,22 @@ class Wmts extends Server {
       $bounds = $m['bounds'];
       $format = $m['format'] == 'hybrid' ? 'jpgpng' : $m['format'];
       $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/' . $format;
-      
+
       if ($profile == 'geodetic') {
         $tileMatrixSet = "WGS84";
       }elseif ($m['profile'] == 'custom') {
-        //TODO: Each custom neads each tileset BUG!!
         $crs = explode(':', $m['crs']);
         $tileMatrixSet = 'custom' . $crs[1];
-        
-        $customtileMatrixSets .= $this->getTileMatrixSet($tileMatrixSet, $m['scales'], $m['bounds'], $m['crs']);
-        
+
+        $customtileMatrixSets .= $this->getTileMatrixSet(
+                $tileMatrixSet, 
+                $m['tile_matrix'], 
+                $m['crs']
+                );
+
       } else {
         $tileMatrixSet = "GoogleMapsCompatible";
-        
+
         list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
@@ -952,28 +990,17 @@ class Wmts extends Server {
       <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
+    
     // Print PseudoMercator TileMatrixSet
     echo $this->getMercatorTileMatrixSet();
-    
-    //Print wgs84 TileMatrixSet
-    $matrixExtent = array(-180.000000, -90.000000, 180.000000, 90.000000);
-    $scales = array(279541132.01435887813568115234, 139770566.00717943906784057617,
-      69885283.00358971953392028809, 34942641.50179485976696014404, 17471320.75089742988348007202,
-      8735660.37544871494174003601, 4367830.18772435747087001801, 2183915.09386217873543500900,
-      1091957.54693108936771750450, 545978.77346554468385875225, 272989.38673277234192937613,
-      136494.69336638617096468806, 68247.34668319308548234403, 34123.67334159654274117202,
-      17061.83667079825318069197, 8530.91833539912659034599, 4265.45916769956329517299,
-      2132.72958384978574031265);
-    $crs = 'EPSG::4326';
-    $matrixRatio = array(2, 1);
 
-    echo $this->getTileMatrixSet($tileMatrixSet, $scales, $matrixExtent, $crs, $matrixRatio);
-    
-    //Print custom TileMatrixSet
+    // Print WGS84 TileMatrixSet
+    echo $this->getWGS84TileMatrixSet();
+
+    // Print custom TileMatrixSets
     if (strlen($customtileMatrixSets) > 0) {
-      echo $customtileMatrixSets; 
+      echo $customtileMatrixSets;
     }
-
 
   echo '</Contents>
   <ServiceMetadataURL xlink:href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/wmts/1.0.0/WMTSCapabilities.xml"/>
