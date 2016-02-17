@@ -4,7 +4,7 @@
  * TileServer.php project
  * ======================
  * https://github.com/klokantech/tileserver-php/
- * Copyright (C) 2014 - Klokan Technologies GmbH
+ * Copyright (C) 2016 - Klokan Technologies GmbH
  */
 
 global $config;
@@ -143,7 +143,7 @@ class Server {
   }
 
   /**
-   *
+   * Get metadata from metadataJson
    * @param string $jsonFileName
    * @return array
    */
@@ -166,7 +166,7 @@ class Server {
 
     $resultdata = $result->fetchAll();
     foreach ($resultdata as $r) {
-      $value = preg_replace('/(\\n)+/','',$r['value']);
+      $value = preg_replace('/(\\n)+/', '', $r['value']);
       $metadata[$r['name']] = addslashes($value);
     }
     if (!array_key_exists('minzoom', $metadata)
@@ -175,10 +175,12 @@ class Server {
       // autodetect minzoom and maxzoom
       $result = $this->db->query('select min(zoom_level) as min, max(zoom_level) as max from tiles');
       $resultdata = $result->fetchAll();
-      if (!array_key_exists('minzoom', $metadata))
+      if (!array_key_exists('minzoom', $metadata)){
         $metadata['minzoom'] = $resultdata[0]['min'];
-      if (!array_key_exists('maxzoom', $metadata))
+      }
+      if (!array_key_exists('maxzoom', $metadata)){
         $metadata['maxzoom'] = $resultdata[0]['max'];
+      }
     }
     // autodetect format using JPEG magic number FFD8
     if (!array_key_exists('format', $metadata)) {
@@ -192,10 +194,10 @@ class Server {
     if (!array_key_exists('bounds', $metadata)) {
       $result = $this->db->query('select min(tile_column) as w, max(tile_column) as e, min(tile_row) as s, max(tile_row) as n from tiles where zoom_level='.$metadata['maxzoom']);
       $resultdata = $result->fetchAll();
-      $w = -180 + 360 * ($resultdata[0]['w'] / pow(2,$metadata['maxzoom']));
-      $e = -180 + 360 * ((1+$resultdata[0]['e']) / pow(2,$metadata['maxzoom']));
+      $w = -180 + 360 * ($resultdata[0]['w'] / pow(2, $metadata['maxzoom']));
+      $e = -180 + 360 * ((1 + $resultdata[0]['e']) / pow(2, $metadata['maxzoom']));
       $n = $this->row2lat($resultdata[0]['n'], $metadata['maxzoom']);
-      $s = $this->row2lat($resultdata[0]['s']-1, $metadata['maxzoom']);
+      $s = $this->row2lat($resultdata[0]['s'] - 1, $metadata['maxzoom']);
       $metadata['bounds'] = implode(',', array($w, $s, $e, $n));
     }
     $metadata = $this->metadataValidation($metadata);
@@ -211,8 +213,8 @@ class Server {
    * @return integer
    */
    public function row2lat($r, $zoom) {
-     $y = $r / pow(2,$zoom-1) - 1;
-     return rad2deg(2.0 * atan(exp(3.191459196*$y)) - 1.57079632679489661922);
+     $y = $r / pow(2, $zoom - 1 ) - 1;
+     return rad2deg(2.0 * atan(exp(3.191459196 * $y)) - 1.57079632679489661922);
    }
 
   /**
@@ -229,23 +231,25 @@ class Server {
     if (!array_key_exists('profile', $metadata)) {
       $metadata['profile'] = 'mercator';
     }
-// TODO: detect thumb / SQL for mbtiles
-    if (array_key_exists('minzoom', $metadata))
+    if (array_key_exists('minzoom', $metadata)){
       $metadata['minzoom'] = intval($metadata['minzoom']);
-    else
+    }else{
       $metadata['minzoom'] = 0;
-    if (array_key_exists('maxzoom', $metadata))
+    }
+    if (array_key_exists('maxzoom', $metadata)){
       $metadata['maxzoom'] = intval($metadata['maxzoom']);
-    else
+    }else{
       $metadata['maxzoom'] = 18;
+    }
     if (!array_key_exists('format', $metadata)) {
       $metadata['format'] = 'png';
     }
-    
     if (!array_key_exists('scale', $metadata)) {
       $metadata['scale'] = 1;
     }
-    
+
+    // TODO: detect thumb / SQL for mbtiles
+
     return $metadata;
   }
 
@@ -277,8 +281,8 @@ class Server {
     $filename = $filename . '.mbtiles';
     $lastModifiedTime = filemtime($filename);
     $eTag = md5($lastModifiedTime);
-    header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModifiedTime) . " GMT");
-    header("Etag:" . $eTag);
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
+    header('Etag:' . $eTag);
     if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime ||
             @trim($_SERVER['HTTP_IF_NONE_MATCH']) == $eTag) {
       return TRUE;
@@ -356,7 +360,7 @@ class Server {
         die;
       } else {
         //scale of tile (for retina tiles)
-        $meta = json_decode(file_get_contents($tileset.'/metadata.json'));
+        $meta = json_decode(file_get_contents($tileset . '/metadata.json'));
         if(!isset($meta->scale)){
           $meta->scale = 1;
         }
@@ -364,7 +368,7 @@ class Server {
       $this->getCleanTile($meta->scale, $ext);
     } else {
       header('HTTP/1.1 404 Not Found');
-      echo 'Server: Unknown or not specified dataset "'.$tileset.'"';
+      echo 'Server: Unknown or not specified dataset "' . $tileset . '"';
       die;
     }
   }
@@ -483,7 +487,7 @@ class Server {
       . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json</a><br>';
       echo 'Bounds: ' . $extend . '</p>';
     }
-    echo '<p>Copyright (C) 2014 - Klokan Technologies GmbH</p>';
+    echo '<p>Copyright (C) 2016 - Klokan Technologies GmbH</p>';
     echo '</body></html>';
   }
 
@@ -643,7 +647,7 @@ class Json extends Server {
   public function getJson() {
     parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
-    header("Content-Type: application/json; charset=utf-8");
+    header('Content-Type: application/json; charset=utf-8');
     if ($this->callback !== 'grid') {
       echo $this->callback . '(' . $this->createJson($this->layer) . ');'; die;
     } else {
@@ -657,7 +661,7 @@ class Json extends Server {
   public function getJsonp() {
     parent::setDatasets();
     header('Access-Control-Allow-Origin: *');
-    header("Content-Type: application/javascript; charset=utf-8");
+    header('Content-Type: application/javascript; charset=utf-8');
     echo $this->callback . '(' . $this->createJson($this->layer) . ');';
   }
 
@@ -735,24 +739,24 @@ class Wmts extends Server {
       if(!isset($tileMatrix[$i]['id'])){
         $tileMatrix[$i]['id'] =  (string) $i;
       }
-      
+
       if (!isset($tileMatrix[$i]['extent']) && isset($layer['extent'])) {
         $tileMatrix[$i]['extent'] = $layer['extent'];
       }
-      
+
       //TODO: Compute from $ŧhis->tilesOfExtent()
       if (!isset($tileMatrix[$i]['matrix_size'])) {
         $tileMatrix[$i]['matrix_size'] = array(pow(2, $i), pow(2, $i));
       }
-      
+
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
         $tileMatrix[$i]['origin'] = array($tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]);
       }
-      
+
       if(!isset($tileMatrix[$i]['scale_denominator'])){
         $tileMatrix[$i]['scale_denominator'] = count($tileMatrix) - $i;
       }
-      
+
       if(!isset($tileMatrix[$i]['tile_size'])){
         $tileSize = 256 * (int) $layer['scale'];
         $tileMatrix[$i]['tile_size'] = array($tileSize, $tileSize);
@@ -896,7 +900,7 @@ class Wmts extends Server {
       }
     }
 
-    header("Content-type: application/xml");
+    header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8" ?>
 <Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
   <!-- Service Identification -->
@@ -965,19 +969,17 @@ class Wmts extends Server {
       $mime = ($format == 'jpg') ? 'image/jpeg' : 'image/' . $format;
 
       if ($profile == 'geodetic') {
-        $tileMatrixSet = "WGS84";
+        $tileMatrixSet = 'WGS84';
       }elseif ($m['profile'] == 'custom') {
         $crs = explode(':', $m['crs']);
         $tileMatrixSet = 'custom' . $crs[1];
-
         $customtileMatrixSets .= $this->getTileMatrixSet(
                 $tileMatrixSet,
                 $m['tile_matrix'],
                 $m['crs']
                 );
-
       } else {
-        $tileMatrixSet = "GoogleMapsCompatible";
+        $tileMatrixSet = 'GoogleMapsCompatible';
 
         list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
@@ -1094,16 +1096,16 @@ class Tms extends Server {
   public function getCapabilities() {
     parent::setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
-    header("Content-type: application/xml");
+    header('Content-type: application/xml');
     echo'<TileMapService version="1.0.0"><TileMaps>';
     foreach ($maps as $m) {
       $basename = $m['basename'];
       $title = (array_key_exists('name', $m) ) ? $m['name'] : $basename;
       $profile = $m['profile'];
       if ($profile == 'geodetic') {
-        $srs = "EPSG:4326";
+        $srs = 'EPSG:4326';
       } else {
-        $srs = "EPSG:3857";
+        $srs = 'EPSG:3857';
         echo '<TileMap title="' . $title . '" srs="' . $srs
         . '" type="InvertedTMS" ' . 'profile="global-' . $profile
         . '" href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/tms/' . $basename . '" />';
@@ -1128,12 +1130,12 @@ class Tms extends Server {
     $description = (array_key_exists('description', $m)) ? $m['description'] : "";
     $bounds = $m['bounds'];
     if ($m['profile'] == 'geodetic') {
-      $srs = "EPSG:4326";
+      $srs = 'EPSG:4326';
       $originx = -180.0;
       $originy = -90.0;
       $initialResolution = 0.703125;
     } else {
-      $srs = "EPSG:3857";
+      $srs = 'EPSG:3857';
       $originx = -20037508.342789;
       $originy = -20037508.342789;
       $mercator = new GlobalMercator();
