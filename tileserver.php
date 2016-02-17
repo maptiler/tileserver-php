@@ -241,6 +241,11 @@ class Server {
     if (!array_key_exists('format', $metadata)) {
       $metadata['format'] = 'png';
     }
+    
+    if (!array_key_exists('scale', $metadata)) {
+      $metadata['scale'] = 1;
+    }
+    
     return $metadata;
   }
 
@@ -724,32 +729,34 @@ class Wmts extends Server {
    * @param Obrject $tileMatrix
    * @return Object
    */
-  public function parseTileMatrix($tileMatrix){
+  public function parseTileMatrix($layer, $tileMatrix){
 
-    for($i = 0; $i <= sizeof($tileMatrix[$i]); $i++){
-      if(!isset($tileMatrix[$i]['tile_size'])){
-        $tileMatrix[$i]['tile_size'] = array(256, 256);
+    for($i = 0; $i <= count($tileMatrix); $i++){
+      if(!isset($tileMatrix[$i]['id'])){
+        $tileMatrix[$i]['id'] =  (string) $i;
       }
-
+      
+      if (!isset($tileMatrix[$i]['extent']) && isset($layer['extent'])) {
+        $tileMatrix[$i]['extent'] = $layer['extent'];
+      }
+      
+      //TODO: Compute from $ŧhis->tilesOfExtent()
       if (!isset($tileMatrix[$i]['matrix_size'])) {
         $tileMatrix[$i]['matrix_size'] = array(pow(2, $i), pow(2, $i));
       }
-
-      //když není nebo když
+      
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
         $tileMatrix[$i]['origin'] = array($tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]);
       }
-
+      
       if(!isset($tileMatrix[$i]['scale_denominator'])){
-        //constants
-        $tileMatrix[$i]['scale_denominator'] = null;
+        $tileMatrix[$i]['scale_denominator'] = count($tileMatrix) - $i;
       }
-
-    if(!isset($tileMatrix[$i]['pixel_size']) && $tileMatrix[$i]['pixel_size'][1] > 0){
-
-    }
-
-      //kontrola jestli piel size je kladná v obou osách
+      
+      if(!isset($tileMatrix[$i]['tile_size'])){
+        $tileSize = 256 * (int) $layer['scale'];
+        $tileMatrix[$i]['tile_size'] = array($tileSize, $tileSize);
+      }
     }
 
     return $tileMatrix;
@@ -802,13 +809,13 @@ class Wmts extends Server {
       $level->origin = array($extent[0], $extent[1]);
       $level->scale_denominator = $denominatorBase / pow(2, $i);
       $level->tile_size = array(256, 256);
-      
+
       $tileMatrixSet[] = (array) $level;
     }
 
     return $this->getTileMatrixSet('GoogleMapsCompatible', $tileMatrixSet, 'EPSG:3857');
   }
-  
+
   /**
    * Default TileMetrixSet for WGS84 projection 4326
    * @return string Xml
@@ -833,7 +840,7 @@ class Wmts extends Server {
       $level->origin = array($extent[0], $extent[1]);
       $level->scale_denominator = $scaleDenominators[$i];
       $level->tile_size = array(256, 256);
-      
+
       $tileMatrixSet[] = (array) $level;
     }
 
@@ -876,6 +883,19 @@ class Wmts extends Server {
    * Returns tilesets getCapabilities
    */
   public function getCapabilities() {
+
+    $layers = array_merge($this->fileLayer, $this->dbLayer);
+
+     //if TileMatrixSet is provided validate it
+    for($i = 0; $i >= count($layers); $i++){
+      if($layers[$i]['profile'] == 'custom' || isset($layers[$i]['tile_matrix'])){
+        $layers[$i]['tile_matrix'] = $this->parseTileMatrix(
+                  $layers[$i],
+                  $layers[$i]['tile_matrix']
+                );
+      }
+    }
+
     header("Content-type: application/xml");
     echo '<?xml version="1.0" encoding="UTF-8" ?>
 <Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
@@ -934,14 +954,10 @@ class Wmts extends Server {
     $customtileMatrixSets = '';
 
     //layers
-    $maps = array_merge($this->fileLayer, $this->dbLayer);
     $mercator = new GlobalMercator();
-    foreach ($maps as $m) {
-      if (strpos($m['basename'], '.') !== false) {
-        $basename = explode('.', $m['basename']);
-      } else {
-        $basename = $m['basename'];
-      }
+    foreach ($layers as $m) {
+
+      $basename = $m['basename'];
       $title = (array_key_exists('name', $m)) ? $m['name'] : $basename;
       $profile = $m['profile'];
       $bounds = $m['bounds'];
@@ -955,8 +971,8 @@ class Wmts extends Server {
         $tileMatrixSet = 'custom' . $crs[1];
 
         $customtileMatrixSets .= $this->getTileMatrixSet(
-                $tileMatrixSet, 
-                $m['tile_matrix'], 
+                $tileMatrixSet,
+                $m['tile_matrix'],
                 $m['crs']
                 );
 
@@ -990,7 +1006,7 @@ class Wmts extends Server {
       <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
-    
+
     // Print PseudoMercator TileMatrixSet
     echo $this->getMercatorTileMatrixSet();
 
