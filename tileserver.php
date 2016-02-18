@@ -734,32 +734,35 @@ class Wmts extends Server {
    * @return Object
    */
   public function parseTileMatrix($layer, $tileMatrix){
-    
+
     for($i = 0; $i < count($tileMatrix); $i++){
-      
+
       if(!isset($tileMatrix[$i]['id'])){
         $tileMatrix[$i]['id'] =  (string) $i;
       }
-      
       if (!isset($tileMatrix[$i]['extent']) && isset($layer['extent'])) {
         $tileMatrix[$i]['extent'] = $layer['extent'];
       }
-
-      //TODO: Compute from $ŧhis->tilesOfExtent()
       if (!isset($tileMatrix[$i]['matrix_size'])) {
-        $tileMatrix[$i]['matrix_size'] = array(pow(2, $i), pow(2, $i));
+        $tileExtent = $this->tilesOfExtent(
+              $tileMatrix[$i]['extent'],
+              $tileMatrix[$i]['origin'],
+              $tileMatrix[$i]['pixel_size'],
+              $tileMatrix[$i]['tile_size']
+        );
+        $tileMatrix[$i]['matrix_size'] = array(
+            $tileExtent[1] + 1,
+            $tileExtent[2] + 1
+        );
       }
-
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
         $tileMatrix[$i]['origin'] = array(
             $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]
         );
       }
-
       if(!isset($tileMatrix[$i]['scale_denominator'])){
         $tileMatrix[$i]['scale_denominator'] = count($tileMatrix) - $i;
       }
-
       if(!isset($tileMatrix[$i]['tile_size'])){
         $tileSize = 256 * (int) $layer['scale'];
         $tileMatrix[$i]['tile_size'] = array($tileSize, $tileSize);
@@ -778,24 +781,21 @@ class Wmts extends Server {
    * @return array
    */
   public function tilesOfExtent($extent, $origin, $pixel_size, $tile_size) {
-    //$minx, $miny, $maxx, $maxy = $extent;
-
-    function minsample($x, $f){
-      return $f > 0 ? floor($x / $f) : ceil(($x / $f) - 1);
-    }
-
-    function maxsample($x, $f){
-      return $f < 0 ? floor($x / $f) : ceil(($x / $f) - 1);
-    }
-
-    $tiles = array();
-    $tiles[] = minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]);
-    $tiles[] = minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]);
-
-    $tiles[] = maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]);
-    $tiles[] = maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]);
-
+    $tiles = array(
+      $this->minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]),
+      $this->minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]),
+      $this->maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]),
+      $this->maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]),
+    );
     return $tiles;
+  }
+
+  private function minsample($x, $f){
+    return $f > 0 ? floor($x / $f) : ceil(($x / $f) - 1);
+  }
+
+  private function maxsample($x, $f){
+    return $f < 0 ? floor($x / $f) : ceil(($x / $f) - 1);
   }
 
   /**
@@ -895,11 +895,11 @@ class Wmts extends Server {
 
     //if TileMatrixSet is provided validate it
     for($i = 0; $i < count($layers); $i++){
-      if($layers[$i]['profile'] == 'custom' || isset($layers[$i]['tile_matrix'])){
+      if($layers[$i]['profile'] == 'custom'){
         $layers[$i]['tile_matrix'] = $this->parseTileMatrix(
-                  $layers[$i],
-                  $layers[$i]['tile_matrix']
-                );
+            $layers[$i],
+            $layers[$i]['tile_matrix']
+        );
       }
     }
 
@@ -975,7 +975,7 @@ class Wmts extends Server {
         $tileMatrixSet = 'WGS84';
       }elseif ($m['profile'] == 'custom') {
         $crs = explode(':', $m['crs']);
-        $tileMatrixSet = 'custom' . $crs[1];
+        $tileMatrixSet = 'custom' . $crs[1] . $m['basename'];
         $customtileMatrixSets .= $this->getTileMatrixSet(
                 $tileMatrixSet,
                 $m['tile_matrix'],
