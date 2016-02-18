@@ -734,12 +734,13 @@ class Wmts extends Server {
    * @return Object
    */
   public function parseTileMatrix($layer, $tileMatrix){
-
-    for($i = 0; $i <= count($tileMatrix); $i++){
+    
+    for($i = 0; $i < count($tileMatrix); $i++){
+      
       if(!isset($tileMatrix[$i]['id'])){
         $tileMatrix[$i]['id'] =  (string) $i;
       }
-
+      
       if (!isset($tileMatrix[$i]['extent']) && isset($layer['extent'])) {
         $tileMatrix[$i]['extent'] = $layer['extent'];
       }
@@ -750,7 +751,9 @@ class Wmts extends Server {
       }
 
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
-        $tileMatrix[$i]['origin'] = array($tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]);
+        $tileMatrix[$i]['origin'] = array(
+            $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]
+        );
       }
 
       if(!isset($tileMatrix[$i]['scale_denominator'])){
@@ -787,10 +790,10 @@ class Wmts extends Server {
 
     $tiles = array();
     $tiles[] = minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]);
-    $tiles[] =minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]);
+    $tiles[] = minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]);
 
-    $tiles[] =maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]);
-    $tiles[] =maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]);
+    $tiles[] = maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]);
+    $tiles[] = maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]);
 
     return $tiles;
   }
@@ -890,8 +893,8 @@ class Wmts extends Server {
 
     $layers = array_merge($this->fileLayer, $this->dbLayer);
 
-     //if TileMatrixSet is provided validate it
-    for($i = 0; $i >= count($layers); $i++){
+    //if TileMatrixSet is provided validate it
+    for($i = 0; $i < count($layers); $i++){
       if($layers[$i]['profile'] == 'custom' || isset($layers[$i]['tile_matrix'])){
         $layers[$i]['tile_matrix'] = $this->parseTileMatrix(
                   $layers[$i],
