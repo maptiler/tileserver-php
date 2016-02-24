@@ -847,7 +847,6 @@ class Wmts extends Server {
         'scale_denominator' => $scaleDenominators[$i],
         'tile_size' => array(256, 256)
       );
-      $tileMatrixSet[] = (array) $level;
     }
 
     return $this->getTileMatrixSet('WGS84', $tileMatrixSet, 'EPSG:4326');
