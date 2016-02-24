@@ -808,16 +808,15 @@ class Wmts extends Server {
     $tileMatrixSet = array();
 
     for($i = 0; $i <= 18; $i++){
-      $level = new stdClass();
-      $level->extent = $extent;
-      $level->id = (string) $i;
       $matrixSize = pow(2, $i);
-      $level->matrix_size = array($matrixSize, $matrixSize);
-      $level->origin = array($extent[0], $extent[1]);
-      $level->scale_denominator = $denominatorBase / pow(2, $i);
-      $level->tile_size = array(256, 256);
-
-      $tileMatrixSet[] = (array) $level;
+      $tileMatrixSet[] = array(
+        'extent' => $extent,
+        'id' => (string) $i,
+        'matrix_size' => array($matrixSize, $matrixSize),
+        'origin' => array($extent[0], $extent[3]),
+        'scale_denominator' => $denominatorBase / pow(2, $i),
+        'tile_size' => array(256, 256)
+      );
     }
 
     return $this->getTileMatrixSet('GoogleMapsCompatible', $tileMatrixSet, 'EPSG:3857');
@@ -839,15 +838,15 @@ class Wmts extends Server {
     $tileMatrixSet = array();
 
     for($i = 0; $i <= count($scaleDenominators); $i++){
-      $level = new stdClass();
-      $level->extent = $extent;
-      $level->id = (string) $i;
       $matrixSize = pow(2, $i);
-      $level->matrix_size = array($matrixSize * 2, $matrixSize);
-      $level->origin = array($extent[0], $extent[1]);
-      $level->scale_denominator = $scaleDenominators[$i];
-      $level->tile_size = array(256, 256);
-
+      $tileMatrixSet[] = array(
+        'extent' => $extent,
+        'id' => (string) $i,
+        'matrix_size' => array($matrixSize * 2, $matrixSize),
+        'origin' => array($extent[0], $extent[3]),
+        'scale_denominator' => $scaleDenominators[$i],
+        'tile_size' => array(256, 256)
+      );
       $tileMatrixSet[] = (array) $level;
     }
 
@@ -1011,17 +1010,17 @@ class Wmts extends Server {
       <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
+    
+     // Print custom TileMatrixSets
+    if (strlen($customtileMatrixSets) > 0) {
+      echo $customtileMatrixSets;
+    }
 
     // Print PseudoMercator TileMatrixSet
     echo $this->getMercatorTileMatrixSet();
 
     // Print WGS84 TileMatrixSet
     echo $this->getWGS84TileMatrixSet();
-
-    // Print custom TileMatrixSets
-    if (strlen($customtileMatrixSets) > 0) {
-      echo $customtileMatrixSets;
-    }
 
   echo '</Contents>
   <ServiceMetadataURL xlink:href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/wmts/1.0.0/WMTSCapabilities.xml"/>
