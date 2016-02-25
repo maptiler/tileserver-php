@@ -751,14 +751,21 @@ class Wmts extends Server {
               $tileMatrix[$i]['tile_size']
         );
         $tileMatrix[$i]['matrix_size'] = array(
-            $tileExtent[1] + 1,
-            $tileExtent[2] + 1
+            $tileExtent[2] + 1,
+            $tileExtent[1] + 1
         );
       }
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
         $tileMatrix[$i]['origin'] = array(
-            $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][4]
+            $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][3]
         );
+      }
+      if (!isset($layer['axis'])) {
+        $layer['axis'] = $layer['xy'];
+      }
+      // Origins of geographic coordinate systems are setting in opposite order 
+      if ($layer['axis'] == 'yx') {
+        $tileMatrix[$i]['origin'] = array_reverse($tileMatrix[$i]['origin']);
       }
       if(!isset($tileMatrix[$i]['scale_denominator'])){
         $tileMatrix[$i]['scale_denominator'] = count($tileMatrix) - $i;
