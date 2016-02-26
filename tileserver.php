@@ -734,13 +734,13 @@ class Wmts extends Server {
    * @return Object
    */
   public function parseTileMatrix($layer, $tileMatrix){
-    
+
     //process projection
     if(isset($layer['proj4'])){
       preg_match_all("/([^+= ]+)=([^= ]+)/", $layer['proj4'], $res);
       $proj4 = array_combine($res[1], $res[2]);
     }
-    
+
     for($i = 0; $i < count($tileMatrix); $i++){
 
       if(!isset($tileMatrix[$i]['id'])){
@@ -766,7 +766,7 @@ class Wmts extends Server {
             $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][3]
         );
       }
-      // Origins of geographic coordinate systems are setting in opposite order 
+      // Origins of geographic coordinate systems are setting in opposite order
       if (isset($proj4) && $proj4['proj'] === 'longlat') {
         $tileMatrix[$i]['origin'] = array_reverse($tileMatrix[$i]['origin']);
       }
@@ -853,7 +853,7 @@ class Wmts extends Server {
         'extent' => $extent,
         'id' => (string) $i,
         'matrix_size' => array($matrixSize * 2, $matrixSize),
-        'origin' => array($extent[0], $extent[3]),
+        'origin' => array($extent[3], $extent[0]),
         'scale_denominator' => $scaleDenominators[$i],
         'tile_size' => array(256, 256)
       );
@@ -910,7 +910,7 @@ class Wmts extends Server {
         );
       }
     }
-    
+
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8" ?>
 <Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
@@ -1019,7 +1019,7 @@ class Wmts extends Server {
       <ResourceURL format="' . $mime . '" resourceType="tile" template="' . $resourceUrlTemplate . '"/>
     </Layer>';
     }
-    
+
      // Print custom TileMatrixSets
     if (strlen($customtileMatrixSets) > 0) {
       echo $customtileMatrixSets;
