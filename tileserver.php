@@ -9,6 +9,7 @@
 
 global $config;
 $config['serverTitle'] = 'TileServer-php v1';
+$config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'hybrid');
 //$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
 Router::serve(array(
@@ -241,7 +242,14 @@ class Server {
       $metadata['maxzoom'] = 18;
     }
     if (!array_key_exists('format', $metadata)) {
-      $metadata['format'] = 'png';
+      if(array_key_exists('tiles', $metadata)){
+        $pos = strrpos($metadata['tiles'][0], '.');
+        $metadata['format'] = trim(substr($metadata['tiles'][0], $pos + 1));
+      }
+    }
+    $formats = $this->config['availableFormats'];
+    if(!in_array(strtolower($metadata['format']), $formats)){
+        $metadata['format'] = 'png';
     }
     if (!array_key_exists('scale', $metadata)) {
       $metadata['scale'] = 1;
@@ -262,6 +270,16 @@ class Server {
     // TODO: detect thumb / SQL for mbtiles
 
     return $metadata;
+  }
+  
+  /**
+   * 
+   * @param string $url
+   * @return string
+   */
+  private function parseFormat($url){
+    
+    return $mime;
   }
 
   /**
