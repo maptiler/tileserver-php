@@ -9,7 +9,7 @@
 
 global $config;
 $config['serverTitle'] = 'TileServer-php v1';
-$config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'hybrid');
+$config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid');
 //$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
 Router::serve(array(
@@ -399,19 +399,18 @@ class Server {
         header('HTTP/1.1 404 Not Found');
         header('Content-Type: application/json; charset=utf-8');
         echo '{"message":"Tile does not exist"}';
-        die;
+        break;
       case 'png':
       default:
-        $tileSize = 256 * $scale;
-        $png = imagecreatetruecolor($tileSize, $tileSize);
-        imagesavealpha($png, true);
-        $trans_colour = imagecolorallocatealpha($png, 0, 0, 0, 127);
-        imagefill($png, 0, 0, $trans_colour);
         header('Access-Control-Allow-Origin: *');
         header('Content-type: image/png');
-        imagepng($png);
-        die;
+        $a = '';
+        for($i=1; $i < 338; $i++){$a .= 'A';}
+        echo base64_decode('iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAABFUl'
+        . 'EQVR42u3BMQEAAADCoPVP7WsIo' . $a . 'eAMBPAAB2ClDBAAAAABJRU5ErkJggg');
+        break;
     }
+    die;
   }
 
   /**
@@ -735,7 +734,7 @@ class Wmts extends Server {
 
   /**
    * Validates tilematrixset, calculates missing params
-   * @param Obrject $tileMatrix
+   * @param Object $tileMatrix
    * @return Object
    */
   public function parseTileMatrix($layer, $tileMatrix){
