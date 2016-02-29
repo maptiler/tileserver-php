@@ -149,9 +149,8 @@ class Server {
    */
   public function metadataFromMetadataJson($jsonFileName) {
     $metadata = json_decode(file_get_contents($jsonFileName), true);
-    $metadata = $this->metadataValidation($metadata);
     $metadata['basename'] = str_replace('/metadata.json', '', $jsonFileName);
-    return $metadata;
+    return $this->metadataValidation($metadata);
   }
 
   /**
@@ -200,9 +199,9 @@ class Server {
       $s = $this->row2lat($resultdata[0]['s'] - 1, $metadata['maxzoom']);
       $metadata['bounds'] = implode(',', array($w, $s, $e, $n));
     }
-    $metadata = $this->metadataValidation($metadata);
     $mbt = explode('.', $mbt);
     $metadata['basename'] = $mbt[0];
+    $metadata = $this->metadataValidation($metadata);
     return $metadata;
   }
 
@@ -246,6 +245,18 @@ class Server {
     }
     if (!array_key_exists('scale', $metadata)) {
       $metadata['scale'] = 1;
+    }
+    if(!array_key_exists('tiles', $metadata)){
+      $tiles = array();
+      foreach ($this->config['baseUrls'] as $url) {
+        $url = '' . $this->config['protocol'] . '://' . $url . '/' .
+                $metadata['basename'] . '/{z}/{x}/{y}';
+        if(strlen($metadata['format']) <= 4){
+          $url .= '.' . $metadata['format'];
+        }
+        $tiles[] = $url;
+      }
+      $metadata['tiles'] = $tiles;
     }
 
     // TODO: detect thumb / SQL for mbtiles
@@ -463,7 +474,6 @@ class Server {
    * Returns server info
    */
   public function getInfo() {
-//    echo $this->config['baseUrls'][0];die;
     $this->setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
@@ -579,16 +589,6 @@ class Json extends Server {
   public function metadataTileJson($metadata) {
     $metadata['tilejson'] = '2.0.0';
     $metadata['scheme'] = 'xyz';
-    $tiles = array();
-    foreach ($this->config['baseUrls'] as $url) {
-      $url = '' . $this->config['protocol'] . '://' . $url . '/' .
-              $metadata['basename'] . '/{z}/{x}/{y}';
-      if(strlen($metadata['format']) <= 4){
-        $url .= '.' . $metadata['format'];
-      }
-      $tiles[] = $url;
-    }
-    $metadata['tiles'] = $tiles;
     if ($this->isDBLayer($metadata['basename'])) {
       $this->DBconnect($metadata['basename'] . '.mbtiles');
       $res = $this->db->query('SELECT * FROM grids LIMIT 1;');
@@ -996,11 +996,14 @@ class Wmts extends Server {
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
       }
-      $resourceUrlTemplate = $this->config['protocol'] . '://'
-      . $this->config['baseUrls'][0] . '/wmts/' . $basename . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
+      
+      $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
+      $resourceUrlTemplate = $wmtsHost . 'wmts/' . $basename 
+              . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
       if(strlen($format) <= 4){
         $resourceUrlTemplate .= '.' . $format;
       }
+      
       echo'
     <Layer>
       <ows:Title>' . $title . '</ows:Title>
