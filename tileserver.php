@@ -266,20 +266,7 @@ class Server {
       }
       $metadata['tiles'] = $tiles;
     }
-
-    // TODO: detect thumb / SQL for mbtiles
-
     return $metadata;
-  }
-  
-  /**
-   * 
-   * @param string $url
-   * @return string
-   */
-  private function parseFormat($url){
-    
-    return $mime;
   }
 
   /**
