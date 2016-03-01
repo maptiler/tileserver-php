@@ -65,12 +65,14 @@ class Server {
     $this->config = $GLOBALS['config'];
     
     //Get config from enviroment
-    if(isset($_ENV['serverTitle'])){
-      $this->config['serverTitle'] = $_ENV['serverTitle'];
+    $envServerTitle = getenv('serverTitle');
+    if($envServerTitle !== FALSE){
+      $this->config['serverTitle'] = $envServerTitle;
     }
-    if(isset($_ENV['baseUrls'])){
-      $this->config['baseUrls'] = is_array($_ENV['baseUrls']) ? 
-              $_ENV['baseUrls'] : explode(',', $_ENV['baseUrls']);
+    $envBaseUrls = getenv('baseUrls');
+    if($envBaseUrls !== FALSE){
+      $this->config['baseUrls'] = is_array($envBaseUrls) ? 
+              $envBaseUrls : explode(',', $envBaseUrls);
     }
   }
 
