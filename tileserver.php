@@ -62,7 +62,10 @@ class Server {
    * Set config
    */
   public function __construct() {
-    $this->config = $GLOBALS['config'];
+    //Get config from docker volumes
+    $envConfig = $_ENV['config'] == null ? array() : $_ENV['config'];
+
+    $this->config = array_merge($GLOBALS['config'], $envConfig);
   }
 
   /**
@@ -1000,14 +1003,14 @@ class Wmts extends Server {
         list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
         $bounds3857 = array($minx, $miny, $maxx, $maxy);
       }
-      
+
       $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
-      $resourceUrlTemplate = $wmtsHost . 'wmts/' . $basename 
+      $resourceUrlTemplate = $wmtsHost . 'wmts/' . $basename
               . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
       if(strlen($format) <= 4){
         $resourceUrlTemplate .= '.' . $format;
       }
-      
+
       echo'
     <Layer>
       <ows:Title>' . $title . '</ows:Title>
