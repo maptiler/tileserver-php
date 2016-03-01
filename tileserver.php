@@ -62,10 +62,16 @@ class Server {
    * Set config
    */
   public function __construct() {
-    //Get config from docker volumes
-    $envConfig = $_ENV['config'] == null ? array() : $_ENV['config'];
-
-    $this->config = array_merge($GLOBALS['config'], $envConfig);
+    $this->config = $GLOBALS['config'];
+    
+    //Get config from enviroment
+    if(isset($_ENV['serverTitle'])){
+      $this->config['serverTitle'] = $_ENV['serverTitle'];
+    }
+    if(isset($_ENV['baseUrls'])){
+      $this->config['baseUrls'] = is_array($_ENV['baseUrls']) ? 
+              $_ENV['baseUrls'] : explode(',', $_ENV['baseUrls']);
+    }
   }
 
   /**
