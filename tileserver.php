@@ -978,7 +978,6 @@ class Wmts extends Server {
     $customtileMatrixSets = '';
 
     //layers
-    $mercator = new GlobalMercator();
     foreach ($layers as $m) {
 
       $basename = $m['basename'];
@@ -1000,10 +999,6 @@ class Wmts extends Server {
                 );
       } else {
         $tileMatrixSet = 'GoogleMapsCompatible';
-
-        list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
-        list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
-        $bounds3857 = array($minx, $miny, $maxx, $maxy);
       }
 
       $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
@@ -1129,10 +1124,12 @@ class Tms extends Server {
         $srs = 'EPSG:4326';
       } else {
         $srs = 'EPSG:3857';
-        echo '<TileMap title="' . $title . '" srs="' . $srs
-        . '" type="InvertedTMS" ' . 'profile="global-' . $profile
-        . '" href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/tms/' . $basename . '" />';
       }
+      $url = $this->config['protocol'] . '://' . $this->config['baseUrls'][0] 
+              . '/tms/' . $basename;
+      echo '<TileMap title="' . $title . '" srs="' . $srs
+        . '" type="InvertedTMS" ' . 'profile="global-' . $profile
+        . '" href="' . $url . '" />';
     }
     echo '</TileMaps></TileMapService>';
   }
@@ -1154,31 +1151,35 @@ class Tms extends Server {
     $bounds = $m['bounds'];
     if ($m['profile'] == 'geodetic') {
       $srs = 'EPSG:4326';
-      $originx = -180.0;
-      $originy = -90.0;
-      $initialResolution = 0.703125;
+      $initRes = 0.703125;
+    } elseif ($m['profile'] == 'custom') {
+      $srs = $m['crs'];
+      $bounds = $m['extent'];
+      if(isset($m['tile_matrix'][0]['pixel_size'][0])){
+        $initRes = $m['tile_matrix'][0]['pixel_size'][0];
+      }else{
+        $initRes = 1;
+      }
     } else {
       $srs = 'EPSG:3857';
-      $originx = -20037508.342789;
-      $originy = -20037508.342789;
-      $mercator = new GlobalMercator();
-      list( $minx, $miny ) = $mercator->LatLonToMeters($bounds[1], $bounds[0]);
-      list( $maxx, $maxy ) = $mercator->LatLonToMeters($bounds[3], $bounds[2]);
-      $bounds = array($minx, $miny, $maxx, $maxy);
-      $initialResolution = 156543.03392804062;
+      $bounds = array(-20037508.34,-20037508.34,20037508.34,20037508.34);
+      $initRes = 156543.03392804062;
     }
     $mime = ($m['format'] == 'jpg') ? 'image/jpeg' : 'image/png';
     header("Content-type: application/xml");
-    echo '<TileMap version="1.0.0" tilemapservice="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '" type="InvertedTMS">
+    $serviceUrl = $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'];
+    echo '<TileMap version="1.0.0" tilemapservice="' . $serviceUrl . '" type="InvertedTMS">
   <Title>' . htmlspecialchars($title) . '</Title>
   <Abstract>' . htmlspecialchars($description) . '</Abstract>
   <SRS>' . $srs . '</SRS>
   <BoundingBox minx="' . $bounds[0] . '" miny="' . $bounds[1] . '" maxx="' . $bounds[2] . '" maxy="' . $bounds[3] . '" />
-  <Origin x="' . $originx . '" y="' . $originy . '"/>
+  <Origin x="' . $bounds[0] . '" y="' . $bounds[1] . '"/>
   <TileFormat width="256" height="256" mime-type="' . $mime . '" extension="' . $m['format'] . '"/>
   <TileSets profile="global-' . $m['profile'] . '">';
     for ($zoom = $m['minzoom']; $zoom < $m['maxzoom'] + 1; $zoom++) {
-      echo '<TileSet href="' . $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '/' . $zoom . '" units-per-pixel="' . $initialResolution / pow(2, $zoom) . '" order="' . $zoom . '" />';
+      $res = $initRes / pow(2, $zoom);
+      $url = $this->config['protocol'] . '://' . $this->config['baseUrls'][0] . '/' . $m['basename'] . '/' . $zoom;
+      echo '<TileSet href="' . $url . '" units-per-pixel="' . $res . '" order="' . $zoom . '" />';
     }
     echo'</TileSets></TileMap>';
   }
@@ -1189,135 +1190,6 @@ class Tms extends Server {
   public function getTile() {
     parent::renderTile($this->layer, $this->z, $this->y, $this->x, $this->ext);
   }
-
-}
-
-/*
-  GlobalMapTiles - part of Aggregate Map Tools
-  Version 1.0
-  Copyright (c) 2009 The Bivings Group
-  All rights reserved.
-  Author: John Bafford
-
-  http://www.bivings.com/
-  http://bafford.com/softare/aggregate-map-tools/
-
-  Based on GDAL2Tiles / globalmaptiles.py
-  Original python version Copyright (c) 2008 Klokan Petr Pridal. All rights reserved.
-  http://www.klokan.cz/projects/gdal2tiles/
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublic ense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
-
-  The abov
-  e copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
- */
-
-class GlobalMercator {
-
-  var $tileSize;
-  var $initialResolution;
-  var $originShift;
-
-//Initialize the TMS Global Mercator pyramid
-  function __construct($tileSize = 256) {
-    $this->tileSize = $tileSize;
-    $this->initialResolution = 2 * M_PI * 6378137 / $this->tileSize;
-# 156543.03392804062 for tileSize 256 Pixels
-    $this->originShift = 2 * M_PI * 6378137 / 2.0;
-# 20037508.342789244
-  }
-
-//Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913
-  function LatLonToMeters($lat, $lon) {
-    $mx = $lon * $this->originShift / 180.0;
-    $my = log(tan((90 + $lat) * M_PI / 360.0)) / (M_PI / 180.0);
-
-    $my *= $this->originShift / 180.0;
-
-    return array($mx, $my);
-  }
-
-//Converts XY point from Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum
-  function MetersToLatLon($mx, $my) {
-    $lon = ($mx / $this->originShift) * 180.0;
-    $lat = ($my / $this->originShift) * 180.0;
-
-    $lat = 180 / M_PI * (2 * atan(exp($lat * M_PI / 180.0)) - M_PI / 2.0);
-
-    return array($lat, $lon);
-  }
-
-//Converts pixel coordinates in given zoom level of pyramid to EPSG:900913
-  function PixelsToMeters($px, $py, $zoom) {
-    $res = $this->Resolution($zoom);
-    $mx = $px * $res - $this->originShift;
-    $my = $py * $res - $this->originShift;
-
-    return array($mx, $my);
-  }
-
-//Converts EPSG:900913 to pyramid pixel coordinates in given zoom level
-  function MetersToPixels($mx, $my, $zoom) {
-    $res = $this->Resolution($zoom);
-
-    $px = ($mx + $this->originShift) / $res;
-    $py = ($my + $this->originShift) / $res;
-
-    return array($px, $py);
-  }
-
-//Returns a tile covering region in given pixel coordinates
-  function PixelsToTile($px, $py) {
-    $tx = ceil($px / $this->tileSize) - 1;
-    $ty = ceil($py / $this->tileSize) - 1;
-
-    return array($tx, $ty);
-  }
-
-//Returns tile for given mercator coordinates
-  function MetersToTile($mx, $my, $zoom) {
-    list($px, $py) = $this->MetersToPixels($mx, $my, $zoom);
-
-    return $this->PixelsToTile($px, $py);
-  }
-
-//Returns bounds of the given tile in EPSG:900913 coordinates
-  function TileBounds($tx, $ty, $zoom) {
-    list($minx, $miny) = $this->PixelsToMeters($tx * $this->tileSize, $ty * $this->tileSize, $zoom);
-    list($maxx, $maxy) = $this->PixelsToMeters(($tx + 1) * $this->tileSize, ($ty + 1) * $this->tileSize, $zoom);
-
-    return array($minx, $miny, $maxx, $maxy);
-  }
-
-//Returns bounds of the given tile in latutude/longitude using WGS84 datum
-  function TileLatLonBounds($tx, $ty, $zoom) {
-    $bounds = $this->TileBounds($tx, $ty, $zoom);
-
-    list($minLat, $minLon) = $this->MetersToLatLon($bounds[0], $bounds[1]);
-    list($maxLat, $maxLon) = $this->MetersToLatLon($bounds[2], $bounds[3]);
-
-    return array($minLat, $minLon, $maxLat, $maxLon);
-  }
-
-//Resolution (meters/pixel) for given zoom level (measured at Equator)
-  function Resolution($zoom) {
-    return $this->initialResolution / (1 < $zoom);
-  }
-
 }
 
 /**
