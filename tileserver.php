@@ -14,7 +14,7 @@ $config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 
 
 Router::serve(array(
     '/' => 'Server:getHtml',
-    '/test' => 'Server:getInfo',
+    '/maps' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
     '/:alpha/:number/:number/:number.grid.json' => 'Json:getUTFGrid',
     '/:alpha.json' => 'Json:getJson',
@@ -492,25 +492,19 @@ class Server {
     $this->setDatasets();
     $maps = array_merge($this->fileLayer, $this->dbLayer);
     header('Content-Type: text/html;charset=UTF-8');
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title></head><body>';
-    echo '<h1>' . $this->config['serverTitle'] . '</h1>';
-    echo 'TileJSON service: <a href="//' . $this->config['baseUrls'][0] . '/index.json">' . $this->config['baseUrls'][0] . '/index.json</a><br>';
-    echo 'WMTS service: <a href="//' . $this->config['baseUrls'][0] . '/wmts">' . $this->config['baseUrls'][0] . '/wmts</a><br>';
-    echo 'TMS service: <a href="//' . $this->config['baseUrls'][0] . '/tms">' . $this->config['baseUrls'][0] . '/tms</a>';
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' . $this->config['serverTitle'] . '</title></head><body>' .
+      '<h1>' . $this->config['serverTitle'] . '</h1>' .
+      'TileJSON service: <a href="//' . $this->config['baseUrls'][0] . '/index.json">' . $this->config['baseUrls'][0] . '/index.json</a><br>' .
+      'WMTS service: <a href="//' . $this->config['baseUrls'][0] . '/wmts">' . $this->config['baseUrls'][0] . '/wmts</a><br>' .
+      'TMS service: <a href="//' . $this->config['baseUrls'][0] . '/tms">' . $this->config['baseUrls'][0] . '/tms</a>';
     foreach ($maps as $map) {
-      $extend = '[';
-      foreach ($map['bounds'] as $ext) {
-        $extend = $extend . ' ' . $ext;
-      }
-      $extend = $extend . ' ]';
-      if (strpos($map['basename'], 'mbtiles') !== false) {
-        echo '<p>Available MBtiles tileset: ' . $map['basename'] . '<br>';
-      } else {
-        echo '<p>Available file tileset: ' . $map['basename'] . '<br>';
-      }
-      echo 'Metadata: <a href="//' . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json">'
-      . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json</a><br>';
-      echo 'Bounds: ' . $extend . '</p>';
+      $extend = '[' . implode($map['bounds'], ', ') . ']';
+      echo '<p>Tileset: <b>' . $map['basename'] . '</b><br>' .
+        'Metadata: <a href="//' . $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json">' .
+        $this->config['baseUrls'][0] . '/' . $map['basename'] . '.json</a><br>' .
+        'Bounds: ' . $extend ;
+      if(isset($map['crs'])){echo '<br>CRS: ' . $map['crs'];}
+       echo '</p>';
     }
     echo '<p>Copyright (C) 2016 - Klokan Technologies GmbH</p>';
     echo '</body></html>';
