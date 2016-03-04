@@ -1207,7 +1207,7 @@ class Router {
 	$config['protocol'] = ( isset($_SERVER["HTTPS"]) or $_SERVER['SERVER_PORT'] == '443') ? "https" : "http";
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
-    } else if (!empty($_SERVER['ORIG_PATH_INFO']) && $_SERVER['ORIG_PATH_INFO'] !== '/tileserver.php') {
+    } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
       $path_info = $_SERVER['ORIG_PATH_INFO'];
     } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/tileserver.php') !== false) {
       $path_info = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -1255,7 +1255,7 @@ class Router {
       }
     } else {
       if (!isset($config['baseUrls'][0])) {
-        $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
+        $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
       }
       if (strpos($_SERVER['REQUEST_URI'], '=') != FALSE) {
         $kvp = explode('=', $_SERVER['REQUEST_URI']);
