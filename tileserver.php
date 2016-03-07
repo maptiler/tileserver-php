@@ -1013,8 +1013,8 @@ class Wmts extends Server {
       }
 
       $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
-      $resourceUrlTemplate = $wmtsHost . 'wmts/' . $basename
-              . '/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}';
+      $resourceUrlTemplate = $wmtsHost . $basename
+              . '/{TileMatrix}/{TileCol}/{TileRow}';
       if(strlen($format) <= 4){
         $resourceUrlTemplate .= '.' . $format;
       }
