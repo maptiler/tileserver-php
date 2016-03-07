@@ -600,7 +600,7 @@ class Json extends Server {
     $metadata['scheme'] = 'xyz';
     if ($this->isDBLayer($metadata['basename'])) {
       $this->DBconnect($metadata['basename'] . '.mbtiles');
-      $res = $this->db->query('SELECT * FROM grids LIMIT 1;');
+      $res = $this->db->query('SELECT name FROM sqlite_master WHERE name="grids";');
       if ($res) {
         foreach ($this->config['baseUrls'] as $url) {
           $grids[] = '' . $this->config['protocol'] . '://' . $url . '/' . $metadata['basename'] . '/{z}/{x}/{y}.grid.json';
