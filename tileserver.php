@@ -830,14 +830,15 @@ class Wmts extends Server {
 
   /**
    * Default TileMetrixSet for Pseudo Mercator projection 3857
+   * @param ?number $maxZoom
    * @return string TileMatrixSet xml
    */
-  public function getMercatorTileMatrixSet(){
+  public function getMercatorTileMatrixSet($maxZoom = 18){
     $denominatorBase = 559082264.0287178;
     $extent = array(-20037508.34,-20037508.34,20037508.34,20037508.34);
     $tileMatrixSet = array();
 
-    for($i = 0; $i <= 18; $i++){
+    for($i = 0; $i <= $maxZoom; $i++){
       $matrixSize = pow(2, $i);
       $tileMatrixSet[] = array(
         'extent' => $extent,
@@ -1010,6 +1011,7 @@ class Wmts extends Server {
                 );
       } else {
         $tileMatrixSet = 'GoogleMapsCompatible';
+        $maxMercatorZoom = max(18, $maxMercatorZoom, $m['maxzoom']);
       }
 
       $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
@@ -1044,7 +1046,7 @@ class Wmts extends Server {
     }
 
     // Print PseudoMercator TileMatrixSet
-    echo $this->getMercatorTileMatrixSet();
+    echo $this->getMercatorTileMatrixSet($maxMercatorZoom);
 
     // Print WGS84 TileMatrixSet
     echo $this->getWGS84TileMatrixSet();
