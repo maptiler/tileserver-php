@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 /*
  * TileServer.php project
  * ======================
@@ -868,7 +871,7 @@ class Wmts extends Server {
       2132.72958384978574031265);
     $tileMatrixSet = array();
 
-    for($i = 0; $i <= count($scaleDenominators); $i++){
+    for($i = 0; $i <= 17; $i++){
       $matrixSize = pow(2, $i);
       $tileMatrixSet[] = array(
         'extent' => $extent,
@@ -988,6 +991,7 @@ class Wmts extends Server {
   <Contents>';
 
     $customtileMatrixSets = '';
+    $maxMercatorZoom = 18;
 
     //layers
     foreach ($layers as $m) {
@@ -1011,7 +1015,7 @@ class Wmts extends Server {
                 );
       } else {
         $tileMatrixSet = 'GoogleMapsCompatible';
-        $maxMercatorZoom = max(18, $maxMercatorZoom, $m['maxzoom']);
+        $maxMercatorZoom = max($maxMercatorZoom, $m['maxzoom']);
       }
 
       $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
