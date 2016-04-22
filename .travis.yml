@@ -7,3 +7,10 @@ php:
   - hhvm
 script:
   - php tileserver.php
+deploy:
+  provider: openshift
+  user: osm2vectortiles@klokantech.com
+  secure: U6KRa+Zcflmz1Imu3cH88Svo2uEvwDXPJqXKG5j0ZzttdritF7nH9ZCu6+XHHrdeWR+KjE31QjWnywA5kp9amJIApd3EJjSkIvAPQr56t+9JXYP7d2L45jQAPXs+eaKgJWwnDELfBdAkM/ChHkmrRWM0NVDiUwvQ1wQbbipBVG8=
+  domain: tileserver
+  app: php
+  skip_cleanup: true
