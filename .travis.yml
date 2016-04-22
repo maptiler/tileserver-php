@@ -10,7 +10,8 @@ script:
 deploy:
   provider: openshift
   user: osm2vectortiles@klokantech.com
-  secure: U6KRa+Zcflmz1Imu3cH88Svo2uEvwDXPJqXKG5j0ZzttdritF7nH9ZCu6+XHHrdeWR+KjE31QjWnywA5kp9amJIApd3EJjSkIvAPQr56t+9JXYP7d2L45jQAPXs+eaKgJWwnDELfBdAkM/ChHkmrRWM0NVDiUwvQ1wQbbipBVG8=
+  password:
+    secure: hiWKBaqh/CMdnQ2qxsRSKYAnk4tP/q2J50TaO+2sH09x+0Q85ygfICCDrEx457xqmGW0e4zZPsL83mMPvGt5KJO6g9DIncj6BFhpZA0ysnRJ3X1fczTiVN5hQfqNpa+/YIrQ0whu1Ur/IfdYTtvArYhuAPeigCloumGk9gNgSIQ=
   domain: tileserver
   app: php
   skip_cleanup: true
