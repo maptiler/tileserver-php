@@ -7,6 +7,12 @@ php:
   - hhvm
 script:
   - php tileserver.php
+after_success:
+  - wget https://github.com/klokantech/tileserver-php/releases/download/v0.1/grandcanyon.mbtiles
+  - git config --global user.email "travis@localhost.localdomain"
+  - git config --global user.name "Travis CI"
+  - git add --all
+  - git commit -am "Travis change"
 deploy:
   provider: openshift
   user: osm2vectortiles@klokantech.com
