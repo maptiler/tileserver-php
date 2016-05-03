@@ -416,6 +416,18 @@ class Server {
         header('Content-Type: application/json; charset=utf-8');
         echo '{"message":"Tile does not exist"}';
         break;
+      case 'webp':
+      default:
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: image/webp');
+        echo base64_decode('UklGRhIAAABXRUJQVlA4TAYAAAAvQWxvAGs=');
+        break;
+      case 'jpg':
+      default:
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: image/jpg');
+        echo base64_decode('/9j/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=');
+        break;
       case 'png':
       default:
         header('Access-Control-Allow-Origin: *');
