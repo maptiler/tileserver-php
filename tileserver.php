@@ -8,7 +8,7 @@
  */
 
 global $config;
-$config['serverTitle'] = 'TileServer-php v1';
+$config['serverTitle'] = 'Maps hosted with TileServer-php v2.0';
 $config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid');
 //$config['template'] = 'template.php';
 //$config['baseUrls'] = array('t0.server.com', 't1.server.com');
