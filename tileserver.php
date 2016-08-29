@@ -10,7 +10,7 @@
 global $config;
 $config['serverTitle'] = 'Maps hosted with TileServer-php v2.0';
 $config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid');
-$config['mbtilesPrefix'] = './';
+$config['dataRoot'] = '';
 //$config['template'] = 'template.php';
 //$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
@@ -87,7 +87,7 @@ class Server {
    */
   public function setDatasets() {
     $mjs = glob('*/metadata.json');
-    $mbts = glob($this->config['mbtilesPrefix'] . '*.mbtiles');
+    $mbts = glob($this->config['dataRoot'] . '*.mbtiles');
     if ($mjs) {
       foreach (array_filter($mjs, 'is_readable') as $mj) {
         $layer = $this->metadataFromMetadataJson($mj);
@@ -140,7 +140,7 @@ class Server {
    * @return boolean
    */
   public function isDBLayer($layer) {
-    if (is_file($this->config['mbtilesPrefix'] . $layer . '.mbtiles')) {
+    if (is_file($this->config['dataRoot'] . $layer . '.mbtiles')) {
       return TRUE;
     } else {
       return FALSE;
@@ -311,7 +311,7 @@ class Server {
    * @return boolean
    */
   public function isModified($filename) {
-    $filename = $this->config['mbtilesPrefix'] . $filename . '.mbtiles';
+    $filename = $this->config['dataRoot'] . $filename . '.mbtiles';
     $lastModifiedTime = filemtime($filename);
     $eTag = md5($lastModifiedTime);
     header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
@@ -339,7 +339,7 @@ class Server {
         header('HTTP/1.1 304 Not Modified');
         die;
       }
-      $this->DBconnect($this->config['mbtilesPrefix'] . $tileset . '.mbtiles');
+      $this->DBconnect($this->config['dataRoot'] . $tileset . '.mbtiles');
       $z = floatval($z);
       $y = floatval($y);
       $x = floatval($x);
@@ -455,7 +455,7 @@ class Server {
         $y = pow(2, $z) - 1 - $y;
       }
       try {
-        $this->DBconnect($this->config['mbtilesPrefix'] . $tileset . '.mbtiles');
+        $this->DBconnect($this->config['dataRoot'] . $tileset . '.mbtiles');
 
         $query = 'SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND '
                 . 'tile_row = ' . $y . ' AND zoom_level = ' . $z;
@@ -620,7 +620,7 @@ class Json extends Server {
     $metadata['tilejson'] = '2.0.0';
     $metadata['scheme'] = 'xyz';
     if ($this->isDBLayer($metadata['basename'])) {
-      $this->DBconnect($this->config['mbtilesPrefix'] . $metadata['basename'] . '.mbtiles');
+      $this->DBconnect($this->config['dataRoot'] . $metadata['basename'] . '.mbtiles');
       $res = $this->db->query('SELECT name FROM sqlite_master WHERE name="grids";');
       if ($res) {
         foreach ($this->config['baseUrls'] as $url) {
