@@ -10,6 +10,7 @@
 global $config;
 $config['serverTitle'] = 'Maps hosted with TileServer-php v2.0';
 $config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid');
+$config['mbtilesPrefix'] = './';
 //$config['template'] = 'template.php';
 //$config['baseUrls'] = array('t0.server.com', 't1.server.com');
 
@@ -86,7 +87,7 @@ class Server {
    */
   public function setDatasets() {
     $mjs = glob('*/metadata.json');
-    $mbts = glob('*.mbtiles');
+    $mbts = glob($this->config['mbtilesPrefix'] . '*.mbtiles');
     if ($mjs) {
       foreach (array_filter($mjs, 'is_readable') as $mj) {
         $layer = $this->metadataFromMetadataJson($mj);
@@ -139,7 +140,7 @@ class Server {
    * @return boolean
    */
   public function isDBLayer($layer) {
-    if (is_file($layer . '.mbtiles')) {
+    if (is_file($this->config['mbtilesPrefix'] . $layer . '.mbtiles')) {
       return TRUE;
     } else {
       return FALSE;
@@ -310,7 +311,7 @@ class Server {
    * @return boolean
    */
   public function isModified($filename) {
-    $filename = $filename . '.mbtiles';
+    $filename = $this->config['mbtilesPrefix'] . $filename . '.mbtiles';
     $lastModifiedTime = filemtime($filename);
     $eTag = md5($lastModifiedTime);
     header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
@@ -338,7 +339,7 @@ class Server {
         header('HTTP/1.1 304 Not Modified');
         die;
       }
-      $this->DBconnect($tileset . '.mbtiles');
+      $this->DBconnect($this->config['mbtilesPrefix'] . $tileset . '.mbtiles');
       $z = floatval($z);
       $y = floatval($y);
       $x = floatval($x);
@@ -412,7 +413,8 @@ class Server {
   public function getCleanTile($scale = 1, $format = 'png') {
     switch ($format) {
       case 'pbf':
-        header('HTTP/1.1 404 Not Found');
+        header('Access-Control-Allow-Origin: *');
+        header('HTTP/1.1 204 No Content');
         header('Content-Type: application/json; charset=utf-8');
         echo '{"message":"Tile does not exist"}';
         break;
@@ -453,7 +455,7 @@ class Server {
         $y = pow(2, $z) - 1 - $y;
       }
       try {
-        $this->DBconnect($tileset . '.mbtiles');
+        $this->DBconnect($this->config['mbtilesPrefix'] . $tileset . '.mbtiles');
 
         $query = 'SELECT grid FROM grids WHERE tile_column = ' . $x . ' AND '
                 . 'tile_row = ' . $y . ' AND zoom_level = ' . $z;
@@ -618,7 +620,7 @@ class Json extends Server {
     $metadata['tilejson'] = '2.0.0';
     $metadata['scheme'] = 'xyz';
     if ($this->isDBLayer($metadata['basename'])) {
-      $this->DBconnect($metadata['basename'] . '.mbtiles');
+      $this->DBconnect($this->config['mbtilesPrefix'] . $metadata['basename'] . '.mbtiles');
       $res = $this->db->query('SELECT name FROM sqlite_master WHERE name="grids";');
       if ($res) {
         foreach ($this->config['baseUrls'] as $url) {
@@ -1147,7 +1149,7 @@ class Tms extends Server {
       } else {
         $srs = 'EPSG:3857';
       }
-      $url = $this->config['protocol'] . '://' . $this->config['baseUrls'][0] 
+      $url = $this->config['protocol'] . '://' . $this->config['baseUrls'][0]
               . '/tms/' . $basename;
       echo '<TileMap title="' . $title . '" srs="' . $srs
         . '" type="InvertedTMS" ' . 'profile="global-' . $profile
