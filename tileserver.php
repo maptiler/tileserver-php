@@ -65,7 +65,7 @@ class Server {
    */
   public function __construct() {
     $this->config = $GLOBALS['config'];
-    
+
     //Get config from enviroment
     $envServerTitle = getenv('serverTitle');
     if($envServerTitle !== FALSE){
@@ -73,7 +73,7 @@ class Server {
     }
     $envBaseUrls = getenv('baseUrls');
     if($envBaseUrls !== FALSE){
-      $this->config['baseUrls'] = is_array($envBaseUrls) ? 
+      $this->config['baseUrls'] = is_array($envBaseUrls) ?
               $envBaseUrls : explode(',', $envBaseUrls);
     }
     $envTemplate = getenv('template');
@@ -1228,7 +1228,13 @@ class Router {
     $request_method = strtolower($_SERVER['REQUEST_METHOD']);
     $path_info = '/';
 	global $config;
-	$config['protocol'] = ((isset($_SERVER['HTTPS']) or $_SERVER['SERVER_PORT'] == '443') or $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') ? 'https' : 'http';
+	$xForwarded = false;
+	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+		if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+			$xForwarded = true;
+		}
+	}
+	$config['protocol'] = ((isset($_SERVER['HTTPS']) or $_SERVER['SERVER_PORT'] == '443') or $xForwarded) ? 'https' : 'http';
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
