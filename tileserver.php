@@ -66,6 +66,11 @@ class Server {
   public function __construct() {
     $this->config = $GLOBALS['config'];
 
+    if($this->config['dataRoot'] != ''
+       && substr($this->config['dataRoot'], -1) != '/' ){
+      $this->config['dataRoot'] .= '/';
+    }
+
     //Get config from enviroment
     $envServerTitle = getenv('serverTitle');
     if($envServerTitle !== FALSE){
