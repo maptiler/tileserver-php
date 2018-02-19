@@ -1232,7 +1232,6 @@ class Router {
    * @param array $routes
    */
   public static function serve($routes) {
-    $request_method = strtolower($_SERVER['REQUEST_METHOD']);
     $path_info = '/';
 	global $config;
 	$xForwarded = false;
