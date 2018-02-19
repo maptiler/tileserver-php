@@ -1240,7 +1240,7 @@ class Router {
 			$xForwarded = true;
 		}
 	}
-	$config['protocol'] = ((isset($_SERVER['HTTPS']) or $_SERVER['SERVER_PORT'] == '443') or $xForwarded) ? 'https' : 'http';
+	$config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
