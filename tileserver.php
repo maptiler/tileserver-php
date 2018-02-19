@@ -637,7 +637,9 @@ class Json extends Server {
     if (array_key_exists('json', $metadata)) {
       $mjson = json_decode(stripslashes($metadata['json']));
       foreach ($mjson as $key => $value) {
-        $metadata[$key] = $value;
+        if ($key != 'Layer'){
+          $metadata[$key] = $value;
+        }
       }
       unset($metadata['json']);
     }
