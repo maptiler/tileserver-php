@@ -1240,17 +1240,18 @@ class Router {
 			$xForwarded = true;
 		}
 	}
-	$config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
+  $config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
+  $requestURINoQuery = substr($_SERVER['REQUEST_URI'], 0, strpos( $_SERVER['REQUEST_URI'], '&', strrpos( $_SERVER['REQUEST_URI'], '?')));
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
       $path_info = $_SERVER['ORIG_PATH_INFO'];
     } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/tileserver.php') !== false) {
-      $path_info = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
+      $path_info = $_SERVER['HTTP_HOST'] . $requestURINoQuery;
+      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $requestURINoQuery . '?';
     } else {
       if (!empty($_SERVER['REQUEST_URI'])) {
-        $path_info = (strpos($_SERVER['REQUEST_URI'], '?') > 0) ? strstr($_SERVER['REQUEST_URI'], '?', true) : $_SERVER['REQUEST_URI'];
+        $path_info = (strpos($requestURINoQuery, '?') > 0) ? strstr($requestURINoQuery, '?', true) : $requestURINoQuery;
       }
     }
     $discovered_handler = null;
