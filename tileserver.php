@@ -1233,15 +1233,19 @@ class Router {
    */
   public static function serve($routes) {
     $path_info = '/';
-	global $config;
-	$xForwarded = false;
-	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-		if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
-			$xForwarded = true;
-		}
-	}
-  $config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
-  $requestURINoQuery = substr($_SERVER['REQUEST_URI'], 0, strpos( $_SERVER['REQUEST_URI'], '&', strrpos( $_SERVER['REQUEST_URI'], '?')));
+    global $config;
+    $xForwarded = false;
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+      if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+        $xForwarded = true;
+      }
+    }
+    $config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
+    $queryStart = strpos( $_SERVER['REQUEST_URI'], '&', strrpos( $_SERVER['REQUEST_URI'], '?'));
+    $requestURINoQuery = $_SERVER['REQUEST_URI'];
+    if ($queryStart != FALSE) {
+      $requestURINoQuery = substr($_SERVER['REQUEST_URI'], 0, $queryStart);
+    }
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
