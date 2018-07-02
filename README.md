@@ -119,6 +119,9 @@ Supported protocols:
   TileJSON can be used in MapBox Studio Classic, MapBox SDKs/APIs, OpenLayers, etc.
 
   Exposed at http://[...]/layer/z/x/y.pbf
+  
+- Retina / HighDPI routing with 512 tiles
+Use @2x suffix in url for JSONs and tiles. For example http://tileserver.maptiler.com/grandcanyon@2x.json  
 
 To use the OGC WMTS standard point your client (desktop or web) to the URL
 of 'directory' where you installed tileserver.php project with suffix "wmts".
@@ -137,8 +140,11 @@ GetTile RESTful/KVP:
  
    http://[...]/layer/[ANYTHING-OPTIONAL][z]/[x]/[y].[ext]
    http://[...]?service=wmts&request=getTile&layer=[layer]&tilematrix=[z]&tilerow=[y]&tilecol=[y]&format=[ext]
-   
+
 Other example requests are mentioned in the .htaccess.
+
+TileServer-PHP supports all coordinates system. You have to define it with tilejson with specification on https://github.com/klokantech/tilejson-spec/tree/custom-projection/2.2.0
+Or use MapTiler to produce datasets with this specification.
 
 Performance from the web clients
 --------------------------------
@@ -174,9 +180,6 @@ Limits of actual implementation
 -------------------------------
 
 With intention, in this moment the project supports only:
-- Mercator tiles (a la OpenStreetMap) and Geodetic tiles (WGS84 unprojected)
-  with known and described tiling scheme.
-- All tiles must be 256x256 pixels.
 - We enforce and require XYZ (top-left origin) tiling schema (even for TMS).
 
 Password protection
