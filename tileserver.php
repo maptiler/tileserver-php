@@ -421,7 +421,6 @@ class Server {
         header('Access-Control-Allow-Origin: *');
         header('HTTP/1.1 204 No Content');
         header('Content-Type: application/json; charset=utf-8');
-        echo '{"message":"Tile does not exist"}';
         break;
       case 'webp':
         header('Access-Control-Allow-Origin: *');
