@@ -1,20 +1,20 @@
 <?php
 
 /*
- * TileServer.php project
+ * TileServer-PHP project
  * ======================
- * https://github.com/klokantech/tileserver-php/
- * Copyright (C) 2016 - Klokan Technologies GmbH
+ * https://github.com/maptiler/tileserver-php/
+ * Copyright (C) 2020 - MapTiler AG
  */
 
 global $config;
 $config['serverTitle'] = 'Maps hosted with TileServer-php v2.0';
-$config['availableFormats'] = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid');
+$config['availableFormats'] = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pbf', 'hybrid'];
 $config['dataRoot'] = '';
 //$config['template'] = 'template.php';
-//$config['baseUrls'] = array('t0.server.com', 't1.server.com');
+//$config['baseUrls'] = ['t0.server.com', 't1.server.com'];
 
-Router::serve(array(
+Router::serve([
     '/' => 'Server:getHtml',
     '/maps' => 'Server:getInfo',
     '/html' => 'Server:getHtml',
@@ -29,7 +29,7 @@ Router::serve(array(
     '/:alpha/:number/:number/:alpha' => 'Wmts:getTile',
     '/tms' => 'Tms:getCapabilities',
     '/tms/:alpha' => 'Tms:getLayerCapabilities',
-));
+]);
 
 /**
  * Server base
@@ -46,13 +46,13 @@ class Server {
    * Datasets stored in file structure
    * @var array
    */
-  public $fileLayer = array();
+  public $fileLayer = [];
 
   /**
    * Datasets stored in database
    * @var array
    */
-  public $dbLayer = array();
+  public $dbLayer = [];
 
   /**
    * PDO database connection
@@ -182,7 +182,7 @@ class Server {
    * @return object
    */
   public function metadataFromMbtiles($mbt) {
-    $metadata = array();
+    $metadata = [];
     $this->DBconnect($mbt);
     $result = $this->db->query('select * from metadata');
 
@@ -220,7 +220,7 @@ class Server {
       $e = -180 + 360 * ((1 + $resultdata[0]['e']) / pow(2, $metadata['maxzoom']));
       $n = $this->row2lat($resultdata[0]['n'], $metadata['maxzoom']);
       $s = $this->row2lat($resultdata[0]['s'] - 1, $metadata['maxzoom']);
-      $metadata['bounds'] = implode(',', array($w, $s, $e, $n));
+      $metadata['bounds'] = implode(',', [$w, $s, $e, $n]);
     }
     $mbt = explode('.', $mbt);
     $metadata['basename'] = $mbt[0];
@@ -246,7 +246,7 @@ class Server {
    */
   public function metadataValidation($metadata) {
     if (!array_key_exists('bounds', $metadata)) {
-      $metadata['bounds'] = array(-180, -85.06, 180, 85.06);
+      $metadata['bounds'] = [-180, -85.06, 180, 85.06];
     } elseif (!is_array($metadata['bounds'])) {
       $metadata['bounds'] = array_map('floatval', explode(',', $metadata['bounds']));
     }
@@ -277,7 +277,7 @@ class Server {
       $metadata['scale'] = 1;
     }
     if(!array_key_exists('tiles', $metadata)){
-      $tiles = array();
+      $tiles = [];
       foreach ($this->config['baseUrls'] as $url) {
         $url = '' . $this->config['protocol'] . '://' . $url . '/' .
                 $metadata['basename'] . '/{z}/{x}/{y}';
@@ -297,7 +297,7 @@ class Server {
    */
   public function DBconnect($tileset) {
     try {
-      $this->db = new PDO('sqlite:' . $tileset, '', '', array(PDO::ATTR_PERSISTENT => true));
+      $this->db = new PDO('sqlite:' . $tileset, '', '', [PDO::ATTR_PERSISTENT => true]);
     } catch (Exception $exc) {
       echo $exc->getTraceAsString();
       die;
@@ -388,7 +388,7 @@ class Server {
           $mime .= $ext;
         }else{
           //detect image type from file
-          $mimetypes = array('gif', 'jpeg', 'png');
+          $mimetypes = ['gif', 'jpeg', 'png'];
           $mime .= $mimetypes[exif_imagetype($name) - 1];
         }
         header('Access-Control-Allow-Origin: *');
@@ -792,15 +792,15 @@ class Wmts extends Server {
               $tileMatrix[$i]['pixel_size'],
               $tileMatrix[$i]['tile_size']
         );
-        $tileMatrix[$i]['matrix_size'] = array(
+        $tileMatrix[$i]['matrix_size'] = [
             $tileExtent[2] + 1,
             $tileExtent[1] + 1
-        );
+        ];
       }
       if(!isset($tileMatrix[$i]['origin']) && isset($tileMatrix[$i]['extent'])){
-        $tileMatrix[$i]['origin'] = array(
+        $tileMatrix[$i]['origin'] = [
             $tileMatrix[$i]['extent'][0], $tileMatrix[$i]['extent'][3]
-        );
+        ];
       }
       // Origins of geographic coordinate systems are setting in opposite order
       if (isset($proj4) && $proj4['proj'] === 'longlat') {
@@ -811,7 +811,7 @@ class Wmts extends Server {
       }
       if(!isset($tileMatrix[$i]['tile_size'])){
         $tileSize = 256 * (int) $layer['scale'];
-        $tileMatrix[$i]['tile_size'] = array($tileSize, $tileSize);
+        $tileMatrix[$i]['tile_size'] = [$tileSize, $tileSize];
       }
     }
 
@@ -827,12 +827,12 @@ class Wmts extends Server {
    * @return array
    */
   public function tilesOfExtent($extent, $origin, $pixel_size, $tile_size) {
-    $tiles = array(
+    $tiles = [
       $this->minsample($extent[0] - $origin[0], $pixel_size[0] * $tile_size[0]),
       $this->minsample($extent[1] - $origin[1], $pixel_size[1] * $tile_size[1]),
       $this->maxsample($extent[2] - $origin[0], $pixel_size[0] * $tile_size[0]),
       $this->maxsample($extent[3] - $origin[1], $pixel_size[1] * $tile_size[1]),
-    );
+    ];
     return $tiles;
   }
 
@@ -851,19 +851,19 @@ class Wmts extends Server {
    */
   public function getMercatorTileMatrixSet($maxZoom = 18){
     $denominatorBase = 559082264.0287178;
-    $extent = array(-20037508.34,-20037508.34,20037508.34,20037508.34);
-    $tileMatrixSet = array();
+    $extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
+    $tileMatrixSet = [];
 
     for($i = 0; $i <= $maxZoom; $i++){
       $matrixSize = pow(2, $i);
-      $tileMatrixSet[] = array(
+      $tileMatrixSet[] = [
         'extent' => $extent,
         'id' => (string) $i,
-        'matrix_size' => array($matrixSize, $matrixSize),
-        'origin' => array($extent[0], $extent[3]),
+        'matrix_size' => [$matrixSize, $matrixSize],
+        'origin' => [$extent[0], $extent[3]],
         'scale_denominator' => $denominatorBase / pow(2, $i),
-        'tile_size' => array(256, 256)
-      );
+        'tile_size' => [256, 256]
+      ];
     }
 
     return $this->getTileMatrixSet('GoogleMapsCompatible', $tileMatrixSet, 'EPSG:3857');
@@ -874,26 +874,26 @@ class Wmts extends Server {
    * @return string Xml
    */
   public function getWGS84TileMatrixSet(){
-    $extent = array(-180.000000, -90.000000, 180.000000, 90.000000);
-    $scaleDenominators = array(279541132.01435887813568115234, 139770566.00717943906784057617,
+    $extent = [-180.000000, -90.000000, 180.000000, 90.000000];
+    $scaleDenominators = [279541132.01435887813568115234, 139770566.00717943906784057617,
       69885283.00358971953392028809, 34942641.50179485976696014404, 17471320.75089742988348007202,
       8735660.37544871494174003601, 4367830.18772435747087001801, 2183915.09386217873543500900,
       1091957.54693108936771750450, 545978.77346554468385875225, 272989.38673277234192937613,
       136494.69336638617096468806, 68247.34668319308548234403, 34123.67334159654274117202,
       17061.83667079825318069197, 8530.91833539912659034599, 4265.45916769956329517299,
-      2132.72958384978574031265);
-    $tileMatrixSet = array();
+      2132.72958384978574031265];
+    $tileMatrixSet = [];
 
     for($i = 0; $i <= 17; $i++){
       $matrixSize = pow(2, $i);
-      $tileMatrixSet[] = array(
+      $tileMatrixSet[] = [
         'extent' => $extent,
         'id' => (string) $i,
-        'matrix_size' => array($matrixSize * 2, $matrixSize),
-        'origin' => array($extent[3], $extent[0]),
+        'matrix_size' => [$matrixSize * 2, $matrixSize],
+        'origin' => [$extent[3], $extent[0]],
         'scale_denominator' => $scaleDenominators[$i],
-        'tile_size' => array(256, 256)
-      );
+        'tile_size' => [256, 256]
+      ];
     }
 
     return $this->getTileMatrixSet('WGS84', $tileMatrixSet, 'EPSG:4326');
@@ -1192,7 +1192,7 @@ class Tms extends Server {
       }
     } else {
       $srs = 'EPSG:3857';
-      $bounds = array(-20037508.34,-20037508.34,20037508.34,20037508.34);
+      $bounds = [-20037508.34,-20037508.34,20037508.34,20037508.34];
       $initRes = 156543.03392804062;
     }
     $mime = ($m['format'] == 'jpg') ? 'image/jpeg' : 'image/png';
@@ -1253,14 +1253,14 @@ class Router {
       }
     }
     $discovered_handler = null;
-    $regex_matches = array();
+    $regex_matches = [];
 
     if ($routes) {
-      $tokens = array(
+      $tokens = [
           ':string' => '([a-zA-Z]+)',
           ':number' => '([0-9]+)',
           ':alpha' => '([a-zA-Z0-9-_@\.]+)'
-      );
+      ];
       //global $config;
       foreach ($routes as $pattern => $handler_name) {
         $pattern = strtr($pattern, $tokens);
@@ -1281,7 +1281,7 @@ class Router {
           $discoverered_class = explode(':', $discovered_handler);
           $discoverered_method = explode(':', $discovered_handler);
           $handler_instance = new $discoverered_class[0]($regex_matches);
-          call_user_func(array($handler_instance, $discoverered_method[1]));
+          call_user_func([$handler_instance, $discoverered_method[1]]);
         } else {
           $handler_instance = new $discovered_handler($regex_matches);
         }
