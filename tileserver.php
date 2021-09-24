@@ -1031,7 +1031,7 @@ class Wmts extends Server {
         $maxMercatorZoom = max($maxMercatorZoom, $m['maxzoom']);
       }
 
-      $wmtsHost = substr($m['tiles'][0], 0, strpos($m['tiles'][0], $m['basename']));
+      $wmtsHost = substr($m['tiles'][0], 0, strrpos($m['tiles'][0], $m['basename']));
       $resourceUrlTemplate = $wmtsHost . $basename
               . '/{TileMatrix}/{TileCol}/{TileRow}';
       if(strlen($format) <= 4){
