@@ -642,6 +642,10 @@ class Json extends Server {
       }
       unset($metadata['json']);
     }
+    if (array_key_exists('tile_matrix', $metadata)) {
+      $tile_matrix = json_decode(stripslashes($metadata['tile_matrix']));
+      $metadata['tile_matrix'] = $tile_matrix;
+    }
     return $metadata;
   }
 
