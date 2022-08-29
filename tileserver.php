@@ -1232,24 +1232,29 @@ class Router {
    */
   public static function serve($routes) {
     $path_info = '/';
-	global $config;
-	$xForwarded = false;
-	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-		if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
-			$xForwarded = true;
-		}
-	}
-	$config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
+    global $config;
+    $xForwarded = false;
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+      if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+        $xForwarded = true;
+      }
+    }
+    $config['protocol'] = ((isset($_SERVER['HTTPS']) or (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) or $xForwarded) ? 'https' : 'http';
+    $queryStart = strpos( $_SERVER['REQUEST_URI'], '&', strrpos( $_SERVER['REQUEST_URI'], '?'));
+    $requestURINoQuery = $_SERVER['REQUEST_URI'];
+    if ($queryStart != FALSE) {
+      $requestURINoQuery = substr($_SERVER['REQUEST_URI'], 0, $queryStart);
+    }
     if (!empty($_SERVER['PATH_INFO'])) {
       $path_info = $_SERVER['PATH_INFO'];
     } else if (!empty($_SERVER['ORIG_PATH_INFO']) && strpos($_SERVER['ORIG_PATH_INFO'], 'tileserver.php') === false) {
       $path_info = $_SERVER['ORIG_PATH_INFO'];
     } else if (!empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/tileserver.php') !== false) {
-      $path_info = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?';
+      $path_info = $_SERVER['HTTP_HOST'] . $requestURINoQuery;
+      $config['baseUrls'][0] = $_SERVER['HTTP_HOST'] . $requestURINoQuery . '?';
     } else {
       if (!empty($_SERVER['REQUEST_URI'])) {
-        $path_info = (strpos($_SERVER['REQUEST_URI'], '?') > 0) ? strstr($_SERVER['REQUEST_URI'], '?', true) : $_SERVER['REQUEST_URI'];
+        $path_info = (strpos($requestURINoQuery, '?') > 0) ? strstr($requestURINoQuery, '?', true) : $requestURINoQuery;
       }
     }
     $discovered_handler = null;
