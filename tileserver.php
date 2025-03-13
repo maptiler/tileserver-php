@@ -406,7 +406,7 @@ class Server {
       $this->getCleanTile($meta->scale, $ext);
     } else {
       header('HTTP/1.1 404 Not Found');
-      echo 'Server: Unknown or not specified dataset "' . $tileset . '"';
+      echo 'Server: Unknown or not specified dataset "' . htmlspecialchars($tileset) . '"';
       die;
     }
   }
