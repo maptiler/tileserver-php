@@ -339,9 +339,9 @@ class Server {
    */
   public function renderTile($tileset, $z, $y, $x, $ext) {
     //simple input validation
-    $z = (int)$z;
-    $y = (int)$y;
-    $x = (int)$x;
+    $z = floatval($z);
+    $y = floatval($y);
+    $x = floatval($x);
     $alpharegex = '/^([a-zA-Z0-9-_@\.]*)$/';
     if (!preg_match($alpharegex, $tileset) || !preg_match($alpharegex, $ext)) {
       header('HTTP/1.1 400 Bad Request');
@@ -355,9 +355,6 @@ class Server {
         die;
       }
       $this->DBconnect($this->config['dataRoot'] . $tileset . '.mbtiles');
-      $z = floatval($z);
-      $y = floatval($y);
-      $x = floatval($x);
       $flip = true;
       if ($flip) {
         $y = pow(2, $z) - 1 - $y;
