@@ -338,6 +338,16 @@ class Server {
    * @param string $ext
    */
   public function renderTile($tileset, $z, $y, $x, $ext) {
+    //simple input validation
+    $z = (int)$z;
+    $y = (int)$y;
+    $x = (int)$x;
+    $alpharegex = '/^([a-zA-Z0-9-_@\.]*)$/';
+    if (!preg_match($alpharegex, $tileset) || !preg_match($alpharegex, $ext)) {
+      header('HTTP/1.1 400 Bad Request');
+      echo 'Server: Parameter validation failed.';
+      die;
+    }
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == true) {
         header('Access-Control-Allow-Origin: *');
