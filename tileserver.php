@@ -383,6 +383,14 @@ class Server {
       if($ext != null){
         $name .= '.' . $ext;
       }
+      //check if the requested file is inside the current working directory
+      $requestedPath = realpath($name);
+      $allowedBasePath = realpath(getcwd());
+      if (strpos($requestedPath, $allowedBasePath . DIRECTORY_SEPARATOR) !== 0) {
+        header('HTTP/1.1 404 Not Found');
+        echo 'Server: Unknown or not specified dataset "' . htmlspecialchars($tileset) . '"';
+        die;
+      }
       if ($fp = @fopen($name, 'rb')) {
         if($ext != null){
           $mime .= $ext;
