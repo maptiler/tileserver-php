@@ -338,6 +338,16 @@ class Server {
    * @param string $ext
    */
   public function renderTile($tileset, $z, $y, $x, $ext) {
+    //simple input validation
+    $z = floatval($z);
+    $y = floatval($y);
+    $x = floatval($x);
+    $alpharegex = '/^([a-zA-Z0-9-_@\.]*)$/';
+    if (!preg_match($alpharegex, $tileset) || !preg_match($alpharegex, $ext)) {
+      header('HTTP/1.1 400 Bad Request');
+      echo 'Server: Parameter validation failed.';
+      die;
+    }
     if ($this->isDBLayer($tileset)) {
       if ($this->isModified($tileset) == true) {
         header('Access-Control-Allow-Origin: *');
@@ -345,9 +355,6 @@ class Server {
         die;
       }
       $this->DBconnect($this->config['dataRoot'] . $tileset . '.mbtiles');
-      $z = floatval($z);
-      $y = floatval($y);
-      $x = floatval($x);
       $flip = true;
       if ($flip) {
         $y = pow(2, $z) - 1 - $y;
@@ -383,6 +390,14 @@ class Server {
       if($ext != null){
         $name .= '.' . $ext;
       }
+      //check if the requested file is inside the current working directory
+      $requestedPath = realpath($name);
+      $allowedBasePath = realpath(getcwd());
+      if (strpos($requestedPath, $allowedBasePath . DIRECTORY_SEPARATOR) !== 0) {
+        header('HTTP/1.1 404 Not Found');
+        echo 'Server: Unknown or not specified dataset "' . htmlspecialchars($tileset) . '"';
+        die;
+      }
       if ($fp = @fopen($name, 'rb')) {
         if($ext != null){
           $mime .= $ext;
@@ -406,7 +421,7 @@ class Server {
       $this->getCleanTile($meta->scale, $ext);
     } else {
       header('HTTP/1.1 404 Not Found');
-      echo 'Server: Unknown or not specified dataset "' . $tileset . '"';
+      echo 'Server: Unknown or not specified dataset "' . htmlspecialchars($tileset) . '"';
       die;
     }
   }
