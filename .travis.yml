@@ -1,0 +1,24 @@
+language: php
+php:
+  - 5.4
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - hhvm
+script:
+  - php tileserver.php
+after_success:
+  - wget https://github.com/klokantech/tileserver-php/releases/download/v0.1/grandcanyon.mbtiles
+  - git config --global user.email "travis@localhost.localdomain"
+  - git config --global user.name "Travis CI"
+  - git add --all
+  - git commit -am "Travis change"
+deploy:
+  provider: openshift
+  user: osm2vectortiles@klokantech.com
+  password:
+    secure: hiWKBaqh/CMdnQ2qxsRSKYAnk4tP/q2J50TaO+2sH09x+0Q85ygfICCDrEx457xqmGW0e4zZPsL83mMPvGt5KJO6g9DIncj6BFhpZA0ysnRJ3X1fczTiVN5hQfqNpa+/YIrQ0whu1Ur/IfdYTtvArYhuAPeigCloumGk9gNgSIQ=
+  domain: tileserver
+  app: php
+  skip_cleanup: true
